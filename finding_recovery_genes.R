@@ -124,7 +124,7 @@ get_recovery_DEGs = function(data){
     #list of genes that were recovery genes in at least one condition (live and heatkilled)
     recovery_genes_total = recovery_genes_total[,c(1,2)]
     recovery_genes_total_uniq = unique(recovery_genes_total)
-    write.table(recovery_genes_total_uniq, file="recovery_genes/recovery_genes_in_at_least_one_condition.txt", row.names = F, col.names = T, quote=F)
+    #write.table(recovery_genes_total_uniq, file="recovery_genes/recovery_genes_in_at_least_one_condition.txt", row.names = F, col.names = T, quote=F)
 
     colnames(recovery_DEGs) = c("condition","number_of_recovery_genes")
     return(recovery_DEGs)
@@ -156,6 +156,8 @@ positions = c("SterileWound", "M.luteus", "E.coli", "S.mar.type", "E.fae.live", 
 ggplot(datm,aes(x = condition,y = value, fill = variable)) + geom_bar(position = "fill",stat = "identity") + scale_y_continuous(labels = percent_format()) + guides(fill=FALSE) + scale_x_discrete(limits = positions) + scale_fill_manual(values = c("skyblue", "grey"))
 
 #+ geom_text(aes(x=paste0(pct,"%")), size=4) -- add % to the graph
+
+
 
 #No need to check this separately (12/11/2016)
 # #3B. What percentage of the clean prick genes recover?
@@ -192,7 +194,97 @@ write.table(overlap.between.mine.and.Schneider, file="recovery_genes/overlap_bet
 
 
 
+#3C. Are recovery genes specific to a condition or are ‘common’ and thus occur in many conditions?
+get_freq_of_recovery_genes = function(data, possible_patterns){
+    specificity_table = matrix(NA, nrow=dim(data)[1], ncol =3); count=0; count_total=0
+    
+    for (i in 1:dim(data)[1]){
+        gene = data[i,c(3:dim(data)[2])]; gene.t = t(gene)
+        
+        for (j in 1:length(possible_patterns)){
+            pattern = possible_patterns[j]
+            for (k in 1:dim(data)[2]){
+                if (pattern %in% gene[1,k]){#if there is at least one condition with the said pattern
+                    count = count + 1
+                }
+            }
+            count_total = count_total + count
+            count=0
+        }
+        
+        specificity_table[i,1] = as.character(data[i,1])
+        specificity_table[i,2] = as.character(data[i,2])
+        specificity_table[i,3] = count_total
+        count=0; count_total=0
+    }
+    return(specificity_table)
+}
+
+#For all 9 conditions
+possible_patterns = c("Up-Up-EE","Up-EE-EE","Up-Down-EE","EE-Up-EE","EE-Down-EE","Down-Up-EE","Down-EE-EE", "Down-Down-EE")
+specificity_table = get_freq_of_recovery_genes(path_data_NS_removed, possible_patterns)
+
+#For live infections only
+path_data_NS_removed_live_only = path_data_NS_removed[,c(1,2,4,5,6,7,8,9)]
+possible_patterns = c("Up-Up-EE","Up-EE-EE","Up-Down-EE","EE-Up-EE","EE-Down-EE","Down-Up-EE","Down-EE-EE", "Down-Down-EE")
+specificity_table_live_infection = get_freq_of_recovery_genes(path_data_NS_removed_live_only, possible_patterns)
+
+#Only get the genes that had a recovery pattern in at least one condition
+specificity_table_removing_zero = specificity_table[which(specificity_table[,3] != 0),]
+specificity_table_live_infection_removing_zero = specificity_table_live_infection[which(specificity_table_live_infection[,3] != 0),]
+
+#Plot the histogram
+barplot(table(specificity_table_removing_zero[,3]), ylim=c(0,1000), main= "All conditions", xlab = "Number of conditions", ylab = "Number of recovery genes")
+barplot(table(specificity_table_live_infection_removing_zero[,3]), ylim=c(0,1000), main= "Live conditions only", xlab = "Number of conditions", ylab = "Number of recovery genes")
+
+
+#What if splitting up-then-recovered genes (Up-EE-EE, EE-Up-EE, Up-Up-EE) and down-then-recovered genes (Down-EE-EE, EE-Down-EE, Down-Down-EE)?
+possible_patterns = c("Up-Up-EE","Up-EE-EE","EE-Up-EE")
+up_recovery_genes = get_freq_of_recovery_genes(path_data_NS_removed, possible_patterns)
+up_recovery_genes_removing_zero = up_recovery_genes[which(up_recovery_genes[,3] != 0),]
+possible_patterns = c("EE-Down-EE","Down-EE-EE", "Down-Down-EE")
+down_recovery_genes = get_freq_of_recovery_genes(path_data_NS_removed, possible_patterns)
+down_recovery_genes_removing_zero = down_recovery_genes[which(down_recovery_genes[,3] != 0),]
+
+barplot(table(up_recovery_genes_removing_zero[,3]), ylim=c(0,500), main= "Genes upregulated then recovered", xlab = "Number of conditions", ylab = "Number of recovery genes")
+barplot(table(down_recovery_genes_removing_zero[,3]), ylim=c(0,500), main= "Genes downregulated then recovered", xlab = "Number of conditions", ylab = "Number of recovery genes")
+
+
+#Do some genes that showed an up-then-recovered pattern in some conditions show the oppositite pattern in other conditions?
+path_with_freq = cbind(path_data_NS_removed,specificity_table[,3],specificity_table_live_infection[,3],up_recovery_genes[,3], down_recovery_genes[,3])
+colnames(path_with_freq)[12:15] = c("num_of_rec_cond_from_all_9","num_of_rec_cond_from_live_6","up_recovery_genes_from_all_9","down_recovery_gene_from_all_9")
+path_with_freq_removing_zero = path_with_freq[which(path_with_freq$num_of_rec_cond_from_all_9 != 0),]
+
+#A few ways to identify these genes:
+genes_with_dual_recovery_pattern = path_with_freq[which(path_with_freq$up_recovery_genes_from_all_9 ==1 & path_with_freq$down_recovery_gene_from_all_9 == 1),]
+genes_with_dual_recovery_pattern = path_with_freq[which(path_with_freq$up_recovery_genes_from_all_9 ==2 & path_with_freq$down_recovery_gene_from_all_9 == 1),]
+genes_with_dual_recovery_pattern = path_with_freq[which(path_with_freq$up_recovery_genes_from_all_9 ==1 & path_with_freq$down_recovery_gene_from_all_9 == 2),]
+genes_with_dual_recovery_pattern = path_with_freq[which(path_with_freq$up_recovery_genes_from_all_9 ==2 & path_with_freq$down_recovery_gene_from_all_9 == 2),]
 
 
 
+#3D. What are the genes that were Up-Down-EE or Down-Up-EE?
+possible_patterns = c("Up-Down-EE","Down-Up-EE")
+odd_recovery_genes = get_freq_of_recovery_genes(path_data_NS_removed, possible_patterns)
+table(odd_recovery_genes[,3]) #0
+odd_recovery_genes = get_freq_of_recovery_genes(path_data, possible_patterns)
+table(odd_recovery_genes[,3]) #0
 
+
+#3E. What’s the difference between the GO term of recovery vs non-recovery genes?
+#i) Genes that recovered in at least one condition vs genes that were active in at least one condition but were not recovered
+total_recovery_genes = read.table("recovery_genes/recovery_genes_in_at_least_one_condition.txt", header=T)
+data_to_trim = path_data_NS_removed
+non_recovery_genes=c()
+for (m in 1:dim(total_recovery_genes)[1]){
+    gene_to_look_at = as.character(total_recovery_genes[m,1])
+    data_to_trim = data_to_trim[!(data_to_trim$gene.id == gene_to_look_at),]
+    non_recovery_genes = data_to_trim
+}
+write.table(non_recovery_genes[,1:2], file="recovery_genes/non_recovery_genes.txt", row.names = F, col.names = T, quote=F)
+
+#ii) Genes that recover in multiple conditions (the right side of the hisgram/barplot) = so-called “super recovery genes"
+super_core_genes_7_plus = path_with_freq_removing_zero[which(path_with_freq_removing_zero$num_of_rec_cond_from_all_9 == 9 | path_with_freq_removing_zero$num_of_rec_cond_from_all_9 == 8 | path_with_freq_removing_zero$num_of_rec_cond_from_all_9 == 7),] #35 genes
+super_core_genes_5_plus_live_only = path_with_freq_removing_zero[which(path_with_freq_removing_zero$num_of_rec_cond_from_live_6 == 6 | path_with_freq_removing_zero$num_of_rec_cond_from_live_6 == 5),] #79 genes
+write.table(super_core_genes_7_plus, file="recovery_genes/genes_that_recovered_in_7_or_more_all_conditions.txt", row.names = F, col.names = T, quote=F)
+write.table(super_core_genes_5_plus_live_only , file="recovery_genes/genes_that_recovered_in_5_or_more_live_conditions.txt", row.names = F, col.names = T, quote=F)
