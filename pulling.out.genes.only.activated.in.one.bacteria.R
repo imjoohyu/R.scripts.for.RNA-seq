@@ -1,4 +1,4 @@
-#EdgeR Commands for Mega RNA-seq for pulling out genes that only [insert the bacteria name] activated
+#EdgeR Commands for Mega RNA-seq for pulling out genes that only uniquely activated by [insert the bacteria name]
 #Date: October 8th, 2015 (Updated on Feb 5th, 2016, further updated on 11/8/2016, 12/7-9/2016)
 #Joo Hyun Im (ji72)
 
@@ -44,6 +44,8 @@ for (i in 1:length.of.table){ #1, 2, 3, ... 2589
 
 
 ####
+#Definition of an uniquely expressed gene:
+#I. a gene that changes expression significantly in one and only one infection condition at 12hrs post infection.
 #1. From the data.table, find the genes that were significant in a given condition
 #2. Now with the list of genes that were significant in a given condition, only select genes that have no significant expression in any other infection conditions.
 condition_list = c(3,9,15,21,27,53,33,59,39,45,47,49,51) #12hr time point
@@ -88,6 +90,8 @@ pull_out_genes_only_activated_in_one_condition = function(direction){
         percentage_of_unique_genes[i,3] = total_number_of_DEGs_in_this_condition
         percentage_of_unique_genes[i,4] = as.numeric(total_number_of_unique_DEGs_in_this_condition/total_number_of_DEGs_in_this_condition)
         
+        write.table(subset_data_table_cross_check_with_other_conditions_final, file=paste("../specific.comparisons/genes_uniquely_regulated_by_each_condition/uniquely_",direction,"regulated_by_",condition_name_list[i],".txt",sep=""), col.names=T, row.names=F, quote=F)
+        
     }
     
     colnames(percentage_of_unique_genes) = c("condition","total_number_of_unique_DEGs_in_this_condition", "total_number_of_DEGs_in_this_condition", "percentage_of_unique_genes")
@@ -103,6 +107,91 @@ pull_out_genes_only_activated_in_one_condition = function(direction){
 up_genes = pull_out_genes_only_activated_in_one_condition("Up")
 down_genes = pull_out_genes_only_activated_in_one_condition("Down")
 
+#II. a gene that changes expression significantly in one and only one infection condition regardless of time points (collapsing time).
+#1. From the data.table, find the genes that were significant in a given condition
+#2. Now with the list of genes that were significant in a given condition, only select genes that have no significant expression in any other infection conditions.
+condition_list = c(3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,53,55,57,33,35,37,59,61,63,39,41,43,45,47,49,51) #direction
+condition_name_list = c("SterileWound","M.luteus","E.coli","S.marcescens","E.faecalis","E.faecalis.hk","P.rettgeri","P.rettgeri.hk","Ecc15","S.aureus","P.sneebia","S.marcescens_Db11","P.entomophila")
+percentage_of_unique_genes=matrix(NA, ncol=4, nrow=length(condition_name_list))
+
+pull_out_genes_only_activated_in_one_condition_ignoring_time = function(direction){
+    for (k in 1:length(condition_name_list)){
+        condition_number = NULL
+        if (k < 10){ #conditions with 3 time points
+            condition_number = condition_list[(k*3-2):(k*3)]
+            #for a given condition, pick the genes that had the chosen direction regardless of time points (observe in all three time points)
+            subset_data_table = data_table[with(data_table, grepl(direction,data_table[,condition_number[1]]) | grepl(direction,data_table[,condition_number[2]]) | grepl(direction,data_table[,condition_number[3]])), ] 
+            total_number_of_DEGs_in_this_condition = dim(subset_data_table)[1]
+            condition_list_other_than_chosen_condition = condition_list[which(!condition_list == unique(condition_number, condition_list))] #generates warning messages
+        
+        }
+        else{ #conditions with 1 time point
+            condition_number = condition_list[(k+18)]
+            subset_data_table = subset(data_table, grepl(direction,data_table[,condition_number]))
+            total_number_of_DEGs_in_this_condition = dim(subset_data_table)[1]
+            condition_list_other_than_chosen_condition = condition_list[which(!condition_list == unique(condition_number,condition_list))] #generates warning messages
+        }
+        
+        cat('\n')
+        cat("condition_list_other_than_chosen_condition: ", condition_list_other_than_chosen_condition, '\n')
+        subset_data_table_rest = subset_data_table[,c(1,2,condition_list_other_than_chosen_condition)]
+        
+        subset_data_table_cross_check_with_other_conditions=c()
+        for (m in 1:dim(subset_data_table_rest)[1]){
+            if (k <10){
+                gene = subset_data_table_rest[m, c(3:30)]
+                count = sum(gene != direction)  #if the number of 'EE' or the opposite of direction is = 12 -> this gene is unique
+                if (count == 28) {#only when this gene is unique
+                    subset_data_table_cross_check_with_other_conditions = rbind(subset_data_table_cross_check_with_other_conditions, subset_data_table[m,c(1,2,condition_list)])
+                }
+            }
+            else{
+                gene = subset_data_table_rest[m, c(3:32)]
+                count = sum(gene != direction)  #if the number of 'EE' or the opposite of direction is = 12 -> this gene is unique
+                if (count == 30) {#only when this gene is unique
+                    subset_data_table_cross_check_with_other_conditions = rbind(subset_data_table_cross_check_with_other_conditions, subset_data_table[m,c(1,2,condition_list)])
+            }
+            }
+        }
+        
+        subset_data_table_cross_check_with_other_conditions_final = subset_data_table_cross_check_with_other_conditions
+        if (is.null(subset_data_table_cross_check_with_other_conditions) == TRUE){
+            total_number_of_unique_DEGs_in_this_condition = 0
+        }
+        else{
+            total_number_of_unique_DEGs_in_this_condition = dim(subset_data_table_cross_check_with_other_conditions_final)[1]
+        }
+        
+        cat("Infection condition: ", condition_name_list[k], '\n')
+        cat("total_number_of_DEGs_in_this_condition: ", total_number_of_DEGs_in_this_condition, '\n')
+        cat("total_number_of_unique_DEGs_in_this_condition: ", total_number_of_unique_DEGs_in_this_condition, '\n')
+        cat("percentage of unique genes out of total DEGs: ", as.numeric(total_number_of_unique_DEGs_in_this_condition/total_number_of_DEGs_in_this_condition, '\n'))
+        
+        percentage_of_unique_genes[k,1] = condition_name_list[k]
+        percentage_of_unique_genes[k,2] = total_number_of_unique_DEGs_in_this_condition
+        percentage_of_unique_genes[k,3] = total_number_of_DEGs_in_this_condition
+        percentage_of_unique_genes[k,4] = as.numeric(total_number_of_unique_DEGs_in_this_condition/total_number_of_DEGs_in_this_condition)
+        
+        write.table(subset_data_table_cross_check_with_other_conditions_final, file=paste("../specific.comparisons/genes_uniquely_regulated_by_each_condition/uniquely_",direction,"regulated_by_",condition_name_list[k],"_ignoring_time.txt",sep=""), col.names=T, row.names=F, quote=F)
+        
+    }
+    
+    colnames(percentage_of_unique_genes) = c("condition","total_number_of_unique_DEGs_in_this_condition", "total_number_of_DEGs_in_this_condition", "percentage_of_unique_genes")
+    if (direction == "Up"){
+        write.table(percentage_of_unique_genes, file = "../specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_percentage_of_unique_upreg_genes_including_cleanprick_and_heatkilled_ignoring_time.txt", col.names = T, row.names = F, quote=F)
+    }
+    if (direction == "Down"){
+        write.table(percentage_of_unique_genes, file = "../specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_percentage_of_unique_downreg_genes_including_cleanprick_and_heatkilled_ignoring_time.txt", col.names = T, row.names = F, quote=F)
+    }
+    
+    return(percentage_of_unique_genes)
+}
+up_genes = pull_out_genes_only_activated_in_one_condition_ignoring_time("Up")
+down_genes = pull_out_genes_only_activated_in_one_condition_ignoring_time("Down")
+
+
+
+#Graphics:
 
 #3. Plot this percentage in a bar chart
 par(mfrow = c(2,1))
@@ -149,6 +238,7 @@ up_genes_rearranged = rbind(up_genes[10,],up_genes[7,],up_genes[13,],up_genes[1,
 down_genes_rearranged = rbind(down_genes[10,],down_genes[7,],down_genes[13,],down_genes[1,],down_genes[9,],down_genes[6,],down_genes[8,],down_genes[5,],down_genes[2,],down_genes[12,],down_genes[11,],down_genes[4,],down_genes[3,])
 
 
+
 par(mfrow = c(2,1))
 Draw_a_graph_rev = function(data, direction){
     color_list_2 = c("orangered3","dodgerblue2","purple3","azure4","lightskyblue","dark salmon","steelblue1","coral1","lightpink","navy","blue","lightseagreen","darkseagreen2")
@@ -157,7 +247,7 @@ Draw_a_graph_rev = function(data, direction){
     coor=c(0.72, 1.88, 3.1, 4.3, 5.5, 6.7, 7.9, 9.1, 10.3, 11.5, 12.7, 13.9, 15.1)
     
     if (direction == "Up"){
-        barplot(percentage_list, main="Percentage of unique-DEGs per infection condition", ylab = "Percentage of unique Up-DEGs (%)", names.arg=data[,1], col= color_list_2, ylim=c(0,50), las=2)
+        barplot(percentage_list, main="Percentage of unique-DEGs per infection condition", ylab = "Percentage of unique Up-DEGs (%)", names.arg=data[,1], col= color_list_2, ylim=c(0,100), las=2)
         
         for (m in 1:length(percentage_list)){
             if (m == 10){
@@ -169,7 +259,7 @@ Draw_a_graph_rev = function(data, direction){
         }
     }
     else{
-        barplot(percentage_list, ylab = "Percentage of unique Down-DEGs (%)", names.arg=data[,1], col= color_list_2, ylim=c(50,0), las=2)
+        barplot(percentage_list, ylab = "Percentage of unique Down-DEGs (%)", names.arg=data[,1], col= color_list_2, ylim=c(100,0), las=2)
         for (m in 1:length(percentage_list)){
             if (m == 10){
                 text(coor[m], 5, paste(round(percentage_list[m],1),"%",sep=""), col="white")
@@ -181,9 +271,6 @@ Draw_a_graph_rev = function(data, direction){
     }
 }
 Draw_a_graph_rev(up_genes_rearranged, "Up"); Draw_a_graph_rev(down_genes_rearranged, "Down")
-
-
-
 
 
 
