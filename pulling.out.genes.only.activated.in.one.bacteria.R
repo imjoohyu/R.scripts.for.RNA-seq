@@ -4,24 +4,13 @@
 
 rm(list=ls(all=TRUE)) #delete any previous entry
 setwd("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/edgeR_results_with_cpm_filter_all_UCs_Nov_2015")
-data_table <- read.table("edgeR_basic_comparison_pval_at_least_one_sig.txt",header=T)
+data_table = read.table("edgeR_basic_comparison_FDR_converted_to_Y-N_at_least_one_sig.txt", header=T)
 
 #Prep: Assign the direction by converting the FC information to Up, Down, or Same depending on their degree of significance
 length.of.table <- as.numeric(dim(data_table)[1])
 width.of.table <- as.numeric(dim(data_table)[2])
 indicator <- NULL
 
-for (k in 1:length.of.table){ #1, 2, 3, ... 2589
-    for (m in seq(4, width.of.table, 2)){ #4, 6, 8, ... 64
-        indicator <- isTRUE(data_table[k,m] > 0.05) #cutoff: FDR of 5%
-        if (indicator == TRUE) { #If the case is NOT significant,
-            data_table[k,m] = "N"
-        }
-        else {
-            data_table[k,m] = "Y"
-        }
-    }
-}
 for (i in 1:length.of.table){ #1, 2, 3, ... 2589
     for (s in seq(3, width.of.table, 2)){ #3, 5, 7, ... 63
         
@@ -45,7 +34,7 @@ for (i in 1:length.of.table){ #1, 2, 3, ... 2589
 
 ####
 #Definition of an uniquely expressed gene:
-#I. a gene that changes expression significantly in one and only one infection condition at 12hrs post infection.
+#Method I. a gene that changes expression significantly in one and only one infection condition at 12hrs post infection.
 #1. From the data.table, find the genes that were significant in a given condition
 #2. Now with the list of genes that were significant in a given condition, only select genes that have no significant expression in any other infection conditions.
 condition_list = c(3,9,15,21,27,53,33,59,39,45,47,49,51) #12hr time point
@@ -107,23 +96,25 @@ pull_out_genes_only_activated_in_one_condition = function(direction){
 up_genes = pull_out_genes_only_activated_in_one_condition("Up")
 down_genes = pull_out_genes_only_activated_in_one_condition("Down")
 
-#II. a gene that changes expression significantly in one and only one infection condition regardless of time points (collapsing time).
+
+
+#Method II. a gene that changes expression significantly in one and only one infection condition regardless of time points (collapsing time).
 #1. From the data.table, find the genes that were significant in a given condition
 #2. Now with the list of genes that were significant in a given condition, only select genes that have no significant expression in any other infection conditions.
-condition_list = c(3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,53,55,57,33,35,37,59,61,63,39,41,43,45,47,49,51) #direction
+condition_list = c(3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,53,55,57,33,35,37,59,61,63,39,41,43,45,47,49,51) #all time points
 condition_name_list = c("SterileWound","M.luteus","E.coli","S.marcescens","E.faecalis","E.faecalis.hk","P.rettgeri","P.rettgeri.hk","Ecc15","S.aureus","P.sneebia","S.marcescens_Db11","P.entomophila")
 percentage_of_unique_genes=matrix(NA, ncol=4, nrow=length(condition_name_list))
 
 pull_out_genes_only_activated_in_one_condition_ignoring_time = function(direction){
     for (k in 1:length(condition_name_list)){
-        condition_number = NULL
-        if (k < 10){ #conditions with 3 time points
+        condition_number = NULL; condition_list_other_than_chosen_condition = NULL
+        if (k < 10){ #for conditions with all three time points
             condition_number = condition_list[(k*3-2):(k*3)]
-            #for a given condition, pick the genes that had the chosen direction regardless of time points (observe in all three time points)
+            #for a given condition, pick the genes that had the chosen direction regardless of time points (pick it if it is significant in at least one time point)
             subset_data_table = data_table[with(data_table, grepl(direction,data_table[,condition_number[1]]) | grepl(direction,data_table[,condition_number[2]]) | grepl(direction,data_table[,condition_number[3]])), ] 
             total_number_of_DEGs_in_this_condition = dim(subset_data_table)[1]
             condition_list_other_than_chosen_condition = condition_list[which(!condition_list == unique(condition_number, condition_list))] #generates warning messages
-        
+            
         }
         else{ #conditions with 1 time point
             condition_number = condition_list[(k+18)]
@@ -133,24 +124,25 @@ pull_out_genes_only_activated_in_one_condition_ignoring_time = function(directio
         }
         
         cat('\n')
+        cat("condition_being_checked: ", condition_name_list[k], '\n')
+        cat("condition_list: ", condition_list, '\n')dim
         cat("condition_list_other_than_chosen_condition: ", condition_list_other_than_chosen_condition, '\n')
         subset_data_table_rest = subset_data_table[,c(1,2,condition_list_other_than_chosen_condition)]
+        cat("names: ", colnames(subset_data_table_rest), '\n')
         
         subset_data_table_cross_check_with_other_conditions=c()
         for (m in 1:dim(subset_data_table_rest)[1]){
+            count=NULL
             if (k <10){
                 gene = subset_data_table_rest[m, c(3:30)]
-                count = sum(gene != direction)  #if the number of 'EE' or the opposite of direction is = 12 -> this gene is unique
-                if (count == 28) {#only when this gene is unique
-                    subset_data_table_cross_check_with_other_conditions = rbind(subset_data_table_cross_check_with_other_conditions, subset_data_table[m,c(1,2,condition_list)])
-                }
             }
             else{
                 gene = subset_data_table_rest[m, c(3:32)]
-                count = sum(gene != direction)  #if the number of 'EE' or the opposite of direction is = 12 -> this gene is unique
-                if (count == 30) {#only when this gene is unique
-                    subset_data_table_cross_check_with_other_conditions = rbind(subset_data_table_cross_check_with_other_conditions, subset_data_table[m,c(1,2,condition_list)])
             }
+            
+            count = sum(gene == direction)  #count the number of direction
+            if (count == 0) {#If there's no other condition that has this direction
+                subset_data_table_cross_check_with_other_conditions = rbind(subset_data_table_cross_check_with_other_conditions, subset_data_table[m,c(1,2,condition_list)])
             }
         }
         
@@ -193,29 +185,29 @@ down_genes = pull_out_genes_only_activated_in_one_condition_ignoring_time("Down"
 
 #Graphics:
 
-#3. Plot this percentage in a bar chart
-par(mfrow = c(2,1))
-Draw_a_graph = function(data, direction){
-    color_list = c("azure4","lightpink", "darkseagreen2","lightseagreen", "coral1","dark salmon","dodgerblue2","steelblue1","lightskyblue","orangered3", "blue", "navy", "purple3")
-    
-    percentage_table = c(data[,4]); percentage_list = as.numeric(percentage_table); percentage_list = percentage_list*100
-    
-    if (direction == "Up"){
-        barplot(percentage_list, main="Percentage of unique-DEGs per infection condition", ylab = "Percentage of unique Up-DEGs (%)", names.arg=condition_name_list, col= color_list, ylim=c(0,50), las=2)
-        text(0.72, 5,"12.1%"); text(1.88, 5, "15.4%"); text(3.1, 5, "13.5%"); text(4.3, 5, "8.9%")
-        text(5.5, 5, "20.7%"); text(6.7, 5, "10.6%"); text(7.9, 5, "19.6%"); text(9.1, 5, "17.7%")
-        text(10.3, 5, "9.9%"); text(11.5, 5, "37.4%"); text(12.7, 5, "10.8%"); text(13.9, 5, "15.5%",col="white")
-        text(15.1, 5, "40.2%")
-    }
-    else{
-        barplot(percentage_list, ylab = "Percentage of unique Down-DEGs (%)", names.arg=condition_name_list, col= color_list, ylim=c(50,0), las=2)
-        text(0.72, 5,"0%"); text(1.88, 5, "16.0%"); text(3.1, 5, "8.6%"); text(4.3, 5, "6.4%")
-        text(5.5, 5, "10.1%"); text(6.7, 5, "20.0%"); text(7.9, 5, "20.2%"); text(9.1, 5, "39.1%")
-        text(10.3, 5, "11.9%"); text(11.5, 5, "47.7%"); text(12.7, 5, "20.6%"); text(13.9, 5, "19.8%",col="white")
-        text(15.1, 5, "29.4%")
-    }
-}
-Draw_a_graph(up_genes, "Up"); Draw_a_graph(down_genes, "Down")
+# #3. Plot this percentage in a bar chart
+# par(mfrow = c(2,1))
+# Draw_a_graph = function(data, direction){
+#     color_list = c("azure4","lightpink", "darkseagreen2","lightseagreen", "coral1","dark salmon","dodgerblue2","steelblue1","lightskyblue","orangered3", "blue", "navy", "purple3")
+#     
+#     percentage_table = c(data[,4]); percentage_list = as.numeric(percentage_table); percentage_list = percentage_list*100
+#     
+#     if (direction == "Up"){
+#         barplot(percentage_list, main="Percentage of unique-DEGs per infection condition", ylab = "Percentage of unique Up-DEGs (%)", names.arg=condition_name_list, col= color_list, ylim=c(0,50), las=2)
+#         text(0.72, 5,"12.1%"); text(1.88, 5, "15.4%"); text(3.1, 5, "13.5%"); text(4.3, 5, "8.9%")
+#         text(5.5, 5, "20.7%"); text(6.7, 5, "10.6%"); text(7.9, 5, "19.6%"); text(9.1, 5, "17.7%")
+#         text(10.3, 5, "9.9%"); text(11.5, 5, "37.4%"); text(12.7, 5, "10.8%"); text(13.9, 5, "15.5%",col="white")
+#         text(15.1, 5, "40.2%")
+#     }
+#     else{
+#         barplot(percentage_list, ylab = "Percentage of unique Down-DEGs (%)", names.arg=condition_name_list, col= color_list, ylim=c(50,0), las=2)
+#         text(0.72, 5,"0%"); text(1.88, 5, "16.0%"); text(3.1, 5, "8.6%"); text(4.3, 5, "6.4%")
+#         text(5.5, 5, "10.1%"); text(6.7, 5, "20.0%"); text(7.9, 5, "20.2%"); text(9.1, 5, "39.1%")
+#         text(10.3, 5, "11.9%"); text(11.5, 5, "47.7%"); text(12.7, 5, "20.6%"); text(13.9, 5, "19.8%",col="white")
+#         text(15.1, 5, "29.4%")
+#     }
+# }
+# Draw_a_graph(up_genes, "Up"); Draw_a_graph(down_genes, "Down")
 
 
 #4. Create a dendrogram based on the original data
