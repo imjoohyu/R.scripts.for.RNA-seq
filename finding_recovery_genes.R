@@ -114,7 +114,7 @@ get_recovery_DEGs = function(data){
         recovery_DEGs[i,2] = as.numeric(dim(recovery_genes)[1])
         
         colnames(recovery_genes) = c("gene_id", "gene_name", paste(list.of.conditions.names[i],".path",sep=""))
-        write.table(recovery_genes, file=paste("recovery_genes/recovery_genes_in_",list.of.conditions.names[i],".txt",sep=""), row.names = F, col.names = T, quote=F)
+        #write.table(recovery_genes, file=paste("recovery_genes/recovery_genes_in_",list.of.conditions.names[i],".txt",sep=""), row.names = F, col.names = T, quote=F)
         
         #Put the recovery genes across the conditions together
         colnames(recovery_genes)=c("gene_id","gene_name","gene_path")
@@ -146,7 +146,7 @@ perc_table[10,1] = as.character("At_least_one"); perc_table[10,2]= dim(total_rec
 perc_table[10,3] = dim(path_data_NS_removed)[1]; perc_table[10,4] = round((perc_table[10,2]/perc_table[10,3])*100,2)
 
 #Create a stacked percentage bar plot
-library(ggplot2); library(scales)
+library(ggplot2); library(scales); library(reshape2)
 perc_table[,5] = perc_table[,3] - perc_table[,2]
 colnames(perc_table)[5] = c("number_of_DEGs_not_recovered")
 
@@ -154,6 +154,12 @@ datm <- melt(cbind(perc_table[,c(2,5)], condition = perc_table$condition), id.va
 pct = as.character(perc_table$percentage_of_recovery_genes)
 positions = c("SterileWound", "M.luteus", "E.coli", "S.mar.type", "E.fae.live", "E.fae.heatkilled", "P.rett.live", "P.rett.heatkilled", "Ecc15","At_least_one")
 ggplot(datm,aes(x = condition,y = value, fill = variable)) + geom_bar(position = "fill",stat = "identity") + scale_y_continuous(labels = percent_format()) + guides(fill=FALSE) + scale_x_discrete(limits = positions) + scale_fill_manual(values = c("skyblue", "grey"))
+
+
+#The other way to do this:
+positions = c("SterileWound", "M.luteus", "E.coli", "S.mar.type", "E.fae.live", "E.fae.heatkilled", "P.rett.live", "P.rett.heatkilled", "Ecc15","At_least_one")
+ggplot(data=perc_table, aes(x=condition, y=percentage_of_recovery_genes, fill=condition)) + geom_bar(stat="identity") + scale_fill_manual(values = c("lightgrey", "darkseagreen2", "dark salmon", "coral1", "lightskyblue", "lightpink", "steelblue1", "dodgerblue2", "lightseagreen","azure4"))+ scale_x_discrete(limits = positions) +  scale_y_continuous(limits=c(0,100)) + labs(y = "Percentage (%) of recovery genes") + theme_bw(base_size=14) + guides(fill=FALSE) + geom_text(size=6, aes(label=paste(percentage_of_recovery_genes,"%")))
+
 
 #+ geom_text(aes(x=paste0(pct,"%")), size=4) -- add % to the graph
 
@@ -250,7 +256,7 @@ barplot(table(up_recovery_genes_removing_zero[,3]), ylim=c(0,500), main= "Genes 
 barplot(table(down_recovery_genes_removing_zero[,3]), ylim=c(0,500), main= "Genes downregulated then recovered", xlab = "Number of conditions", ylab = "Number of recovery genes")
 
 
-#Do some genes that showed an up-then-recovered pattern in some conditions show the oppositite pattern in other conditions?
+#Do some genes that showed an up-then-recovered pattern in some conditions show the opposite pattern in other conditions? Yes
 path_with_freq = cbind(path_data_NS_removed,specificity_table[,3],specificity_table_live_infection[,3],up_recovery_genes[,3], down_recovery_genes[,3])
 colnames(path_with_freq)[12:15] = c("num_of_rec_cond_from_all_9","num_of_rec_cond_from_live_6","up_recovery_genes_from_all_9","down_recovery_gene_from_all_9")
 path_with_freq_removing_zero = path_with_freq[which(path_with_freq$num_of_rec_cond_from_all_9 != 0),]
@@ -260,6 +266,30 @@ genes_with_dual_recovery_pattern = path_with_freq[which(path_with_freq$up_recove
 genes_with_dual_recovery_pattern = path_with_freq[which(path_with_freq$up_recovery_genes_from_all_9 ==2 & path_with_freq$down_recovery_gene_from_all_9 == 1),]
 genes_with_dual_recovery_pattern = path_with_freq[which(path_with_freq$up_recovery_genes_from_all_9 ==1 & path_with_freq$down_recovery_gene_from_all_9 == 2),]
 genes_with_dual_recovery_pattern = path_with_freq[which(path_with_freq$up_recovery_genes_from_all_9 ==2 & path_with_freq$down_recovery_gene_from_all_9 == 2),]
+
+
+#What if I remove the uniquely expressed genes from the recovery genes bin 1? (1/13/2017)
+unique_genes = read.table("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/specific.comparisons/genes_uniquely_regulated_by_each_condition/unique_genes_ignoring_time.txt", header=T)
+unique_genes_simplified = unique_genes[,c(1:2)]
+unique_genes_simplified_uniquified = unique(unique_genes_simplified)
+
+#Remove uniquely expressed genes from the recovery genes that only recovered in one condition (bin 1)
+remove_express_genes_from_bin1 = function(data){
+    bin1 = data[which(data[,3] == "1"),]
+    the_rest = data[which(data[,3] != "1"),]
+    for (i in 1:dim(unique_genes_simplified_uniquified)[1]){
+        gene_to_remove = unique_genes_simplified_uniquified[i,1]
+        bin1 = bin1[which(bin1[,1] != gene_to_remove),]
+    }
+    data_with_new_bin1 = rbind(bin1, the_rest)
+    return(barplot(table(data_with_new_bin1[,3]), ylim=c(0,500), xlab = "Number of conditions", ylab = "Number of recovery genes"))
+    
+}
+par(mfrow = c(2,2))
+specificity_table_all_conditions_unique_genes_removed = remove_express_genes_from_bin1(specificity_table_removing_zero) #all conditions
+specificity_table_all_conditions_unique_genes_removed = remove_express_genes_from_bin1(up_recovery_genes_removing_zero) #genes upregulated than recovered
+specificity_table_live_infection_unique_genes_removed = remove_express_genes_from_bin1(specificity_table_live_infection_removing_zero) #live conditions only
+specificity_table_all_conditions_unique_genes_removed = remove_express_genes_from_bin1(down_recovery_genes_removing_zero) #genes downregulated then recovered
 
 
 
@@ -288,3 +318,38 @@ super_core_genes_7_plus = path_with_freq_removing_zero[which(path_with_freq_remo
 super_core_genes_5_plus_live_only = path_with_freq_removing_zero[which(path_with_freq_removing_zero$num_of_rec_cond_from_live_6 == 6 | path_with_freq_removing_zero$num_of_rec_cond_from_live_6 == 5),] #79 genes
 write.table(super_core_genes_7_plus, file="recovery_genes/genes_that_recovered_in_7_or_more_all_conditions.txt", row.names = F, col.names = T, quote=F)
 write.table(super_core_genes_5_plus_live_only , file="recovery_genes/genes_that_recovered_in_5_or_more_live_conditions.txt", row.names = F, col.names = T, quote=F)
+
+
+#3F. What happens to the AMPs? (2/13/2017)
+input_data= path_data_NS_removed
+AMPs = c("Dro", "Drs", "CecA1", "CecA2", "CecB", "CecC", "Dpt", "DptB", "AttA", "AttB", "Def", "Mtk")
+possible_patterns = c("Up-Up-EE","Up-EE-EE","Up-Down-EE","EE-Up-EE","EE-Down-EE","Down-Up-EE","Down-EE-EE", "Down-Down-EE")
+AMP_data = c()
+for (i in 1:length(AMPs)){
+    AMP_name = as.character(AMPs[i])
+    AMP_data = rbind(AMP_data, input_data[which(input_data$gene.name == AMP_name),])
+}
+AMP_data_pattern_checked = matrix(NA, nrow=dim(AMP_data)[1], ncol=dim(AMP_data)[2])
+for (j in 1:length(AMPs)){
+    for (k in 3:11){
+        if (as.character(AMP_data[j,k]) %in% possible_patterns){ #if recovered/returned
+            AMP_data_pattern_checked[j,k] = as.character("Yes")
+        }
+        else{
+            AMP_data_pattern_checked[j,k] = as.character("No")
+        }
+    }
+}
+
+AMP_data_converted = cbind(AMP_data[,1:2], AMP_data_pattern_checked[,3:11])
+colnames(AMP_data_converted) = c("gene_id", "gene_name", "Sterile Wound", "M.lutues", "E.coli", "S.marcescens Type", "E.faecalis live", "P.rettgeri live", "Ecc15", "E.faecalis heatkilled", "P.rettgeri heatkilled")
+write.table(AMP_data_converted, file="recovery_genes/Are_AMPs_recovered.txt", row.names = F, col.names = T, quote =F)
+
+
+library(gplots)
+AMP_data_matrix = as.matrix(AMP_data_converted)
+heatmap.2(x=AMP_data_matrix, Rowv= FALSE, Colv = FALSE, dendrogram = "none", cellnote = AMP_data_matrix)
+
+
+
+
