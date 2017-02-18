@@ -265,4 +265,115 @@ Draw_a_graph_rev = function(data, direction){
 Draw_a_graph_rev(up_genes_rearranged, "Up"); Draw_a_graph_rev(down_genes_rearranged, "Down")
 
 
+#Added on 2/16/2017 (Thur)
+#6.Plot the number of DEGs and overlay the number of unique DEGs on top.
+dim(data_table) #input data with the direction
 
+condition_name_list = c("SterileWound","M.luteus","E.coli","S.marcescens","E.faecalis","E.faecalis.hk","P.rettgeri","P.rettgeri.hk","Ecc15","S.aureus","P.sneebia","S.marcescens_Db11","P.entomophila")
+condition_list = c(3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,53,55,57,33,35,37,59,61,63,39,41,43,45,47,49,51) #all time points
+
+Get_the_number_of_DEGs_and_unique_genes = function(input_data, direction){
+    table_of_DEG_and_unique_DEG = c()
+    
+    for (i in 1:length(condition_name_list)){ #for each condition
+        
+        unique_genes = read.table(paste("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/specific.comparisons/genes_uniquely_regulated_by_each_condition/uniquely_",direction,"regulated_by_",condition_name_list[i],"_ignoring_time.txt",sep=""), header=T)
+        
+        unique_genes_only = unique_genes[,1]
+        tp12 = NULL; tp36 = NULL; tp55 = NULL; data_to_add = NULL
+        
+        if (i < 10){ #for conditions with all three time points
+            tp12 = input_data[which(input_data[,condition_list[i*3-2]] == direction),]
+            tp36 = input_data[which(input_data[,condition_list[i*3-1]] == direction),]
+            tp55 = input_data[which(input_data[,condition_list[i*3]] == direction),]
+        
+            tp12_intersect = intersect(unique_genes_only, tp12[,1])
+            tp36_intersect = intersect(unique_genes_only, tp36[,1])
+            tp55_intersect = intersect(unique_genes_only, tp55[,1])
+            
+            data_to_add = c(condition_name_list[i], dim(tp12)[1], dim(tp36)[1], dim(tp55)[1], length(tp12_intersect), length(tp36_intersect), length(tp55_intersect))
+        }
+        else { #for conditions with one time point only
+            tp12 = input_data[which(input_data[,condition_list[i+18]] == direction),]
+            tp12_intersect = intersect(unique_genes_only, tp12[,1])
+            
+            data_to_add = c(condition_name_list[i], dim(tp12)[1], 0, 0, length(tp12_intersect), 0, 0)
+        }
+        table_of_DEG_and_unique_DEG = rbind(table_of_DEG_and_unique_DEG, data_to_add)
+    }
+    return(table_of_DEG_and_unique_DEG)
+}
+upregulated_uniq_DEG = Get_the_number_of_DEGs_and_unique_genes(data_table, "Up"); colnames(upregulated_uniq_DEG) = c("condition","12hr","36hr","132hr","12hr_uniq","36hr_uniq","132hr_uniq")
+downregulated_uniq_DEG = Get_the_number_of_DEGs_and_unique_genes(data_table, "Down"); colnames(downregulated_uniq_DEG) = c("condition","12hr","36hr","132hr","12hr_uniq","36hr_uniq","132hr_uniq") #has an error msg when i=1 because there's no unique gene. But the code works.
+write.table(upregulated_uniq_DEG, file="/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_DEG_and_unique_DEG_Upregulated.txt", quote=F, row.names = F, col.names=T)
+write.table(downregulated_uniq_DEG, file="/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_DEG_and_unique_DEG_Downregulated.txt", quote=F, row.names = F, col.names=T)
+
+
+format_the_data = function(input_data){
+    input_data_df = data.frame(input_data)
+    input_data_df[,1] = as.character(input_data_df[,1])
+    for (m in 2:7){
+        input_data_df[,m] <- as.numeric(as.character(input_data_df[,m]))
+    }
+    output = c()
+    for (j in 1:length(condition_name_list)){
+        tp12 = NULL; tp36 = NULL; tp55 = NULL; data_to_add = NULL
+        if (j<10){
+            tp12 = c(condition_name_list[j],colnames(input_data_df)[2],"DEG", input_data_df[j,2]-input_data_df[j,5])
+            tp12_2 = c(condition_name_list[j],colnames(input_data_df)[2],"Unique", input_data_df[j,5])
+            tp36 = c(condition_name_list[j],colnames(input_data_df)[3],"DEG", input_data_df[j,3]-input_data_df[j,6])
+            tp36_2 = c(condition_name_list[j],colnames(input_data_df)[3],"Unique", input_data_df[j,6])
+            tp55 = c(condition_name_list[j],colnames(input_data_df)[4],"DEG", input_data_df[j,4]-input_data_df[j,7])
+            tp55_2 = c(condition_name_list[j],colnames(input_data_df)[4],"Unique", input_data_df[j,7])
+            output = rbind(output, tp12, tp12_2, tp36, tp36_2, tp55, tp55_2)
+        }
+        else {
+            tp12 = c(condition_name_list[j],colnames(input_data_df)[2],"DEG", input_data_df[j,2]-input_data_df[j,5])
+            tp12_2 = c(condition_name_list[j],colnames(input_data_df)[2],"Unique", input_data_df[j,5])
+            tp36 = c(condition_name_list[j],colnames(input_data_df)[3],"DEG",0)
+            tp36_2 = c(condition_name_list[j],colnames(input_data_df)[3],"Unique",0)
+            tp55 = c(condition_name_list[j],colnames(input_data_df)[4],"DEG",0)
+            tp55_2 = c(condition_name_list[j],colnames(input_data_df)[4],"Unique",0)
+            output = rbind(output, tp12, tp12_2, tp36, tp36_2, tp55, tp55_2)        
+        }
+    }
+    
+    return(output)
+} #gets an error msg but it works.
+upregulated_uniq_DEG_formatted = as.data.frame(format_the_data(upregulated_uniq_DEG)); colnames(upregulated_uniq_DEG_formatted) = c("Condition","Time","Type","Count")
+upregulated_uniq_DEG_formatted[,2] = sub("X12hr", "12hr", x = upregulated_uniq_DEG_formatted[,2] )
+upregulated_uniq_DEG_formatted[,2] = sub("X36hr", "36hr", x = upregulated_uniq_DEG_formatted[,2] )
+upregulated_uniq_DEG_formatted[,2] = sub("X132hr", "132hr", x = upregulated_uniq_DEG_formatted[,2] )
+downregulated_uniq_DEG_formatted = as.data.frame(format_the_data(downregulated_uniq_DEG)); colnames(downregulated_uniq_DEG_formatted) =c("Condition","Time","Type","Count")
+downregulated_uniq_DEG_formatted[,2] =sub("X12hr", "12hr", x = downregulated_uniq_DEG_formatted[,2] )
+downregulated_uniq_DEG_formatted[,2] =sub("X36hr", "36hr", x = downregulated_uniq_DEG_formatted[,2] )
+downregulated_uniq_DEG_formatted[,2] =sub("X132hr", "132hr", x = downregulated_uniq_DEG_formatted[,2] )
+
+
+library(ggplot2); library(grid); library(gridExtra)
+grid.newpage(); pushViewport(viewport(layout = grid.layout(2,1 )))
+vplayout <- function(x, y) viewport(layout.pos.row = x, layout.pos.col = y)
+
+Draw_a_plot = function(input_data, direction){
+    #condition_order = c("SterileWound","M.luteus","E.coli","S.marcescens","E.faecalis","E.faecalis.hk","P.rettgeri","P.rettgeri.hk","Ecc15","S.aureus","P.sneebia","S.marcescens_Db11","P.entomophila")
+    condition_order = c("S.aureus","P.rettgeri","P.entomophila","SterileWound","Ecc15","E.faecalis.hk","P.rettgeri.hk","E.faecalis","M.luteus","S.marcescens_Db11","P.sneebia","S.marcescens","E.coli") #order by dendrogram
+    time_order = c("12hr", "36hr", "132hr")
+    if (direction == "Up"){
+        input_data[,4] = as.numeric(as.character(input_data[,4]))
+        input_data$Condition = factor(input_data$Condition, levels= condition_order)
+        input_data$Time = factor(input_data$Time, levels= time_order)
+        plot = ggplot(input_data, aes(x=Time,y=Count,fill=Type)) + geom_bar(stat = "identity",color="white") + facet_wrap(~Condition,nrow=1) + scale_fill_manual(values = c("black", "orange")) + scale_y_continuous(limits=c(0,750)) + theme_bw(base_size=14)
+    }
+    else{
+        input_data[,4] = as.numeric(as.character(input_data[,4]))
+        input_data$Condition = factor(input_data$Condition, levels= condition_order)
+        input_data$Time = factor(input_data$Time, levels= time_order)
+        plot = ggplot(input_data, aes(x=Time,y=Count,fill=Type)) + geom_bar(stat = "identity",color="white") + facet_wrap(~Condition,nrow=1) + scale_fill_manual(values = c("black", "orange")) + scale_y_continuous(limits=c(0,750)) + theme_bw(base_size=14) + scale_y_reverse()
+    }
+    return(plot)
+}
+plot1 = Draw_a_plot(upregulated_uniq_DEG_formatted, "Up")
+plot2 = Draw_a_plot(downregulated_uniq_DEG_formatted, "Down")
+
+print(plot1, vp = vplayout(1, 1))
+print(plot2, vp = vplayout(2, 1))
