@@ -132,6 +132,8 @@ get_recovery_DEGs = function(data){
 recovery_DEGs_table = get_recovery_DEGs(path_data_NS_removed)
 
 
+
+
 #3. Research questions:
 #3A. What percentage of the active DEGs recovery genes?
 perc_table = data.frame(cbind(as.numeric(as.character(recovery_DEGs_table[,2])), as.numeric(as.character(active_DEGs_table[,2]))))
@@ -155,8 +157,7 @@ pct = as.character(perc_table$percentage_of_recovery_genes)
 positions = c("SterileWound", "M.luteus", "E.coli", "S.mar.type", "E.fae.live", "E.fae.heatkilled", "P.rett.live", "P.rett.heatkilled", "Ecc15","At_least_one")
 ggplot(datm,aes(x = condition,y = value, fill = variable)) + geom_bar(position = "fill",stat = "identity") + scale_y_continuous(labels = percent_format()) + guides(fill=FALSE) + scale_x_discrete(limits = positions) + scale_fill_manual(values = c("skyblue", "grey"))
 
-
-#The other way to do this:
+#The other way to plot this graph with different colors representing different bacterial infections:
 positions = c("SterileWound", "M.luteus", "E.coli", "S.mar.type", "E.fae.live", "E.fae.heatkilled", "P.rett.live", "P.rett.heatkilled", "Ecc15","At_least_one")
 ggplot(data=perc_table, aes(x=condition, y=percentage_of_recovery_genes, fill=condition)) + geom_bar(stat="identity") + scale_fill_manual(values = c("lightgrey", "darkseagreen2", "dark salmon", "coral1", "lightskyblue", "lightpink", "steelblue1", "dodgerblue2", "lightseagreen","azure4"))+ scale_x_discrete(limits = positions) +  scale_y_continuous(limits=c(0,100)) + labs(y = "Percentage (%) of recovery genes") + theme_bw(base_size=14) + guides(fill=FALSE) + geom_text(size=6, aes(label=paste(percentage_of_recovery_genes,"%")))
 
@@ -324,6 +325,7 @@ write.table(super_core_genes_5_plus_live_only , file="recovery_genes/genes_that_
 input_data= path_data_NS_removed
 AMPs = c("Dro", "Drs", "CecA1", "CecA2", "CecB", "CecC", "Dpt", "DptB", "AttA", "AttB", "Def", "Mtk")
 possible_patterns = c("Up-Up-EE","Up-EE-EE","Up-Down-EE","EE-Up-EE","EE-Down-EE","Down-Up-EE","Down-EE-EE", "Down-Down-EE")
+no_change = c("EE-EE-EE")
 AMP_data = c()
 for (i in 1:length(AMPs)){
     AMP_name = as.character(AMPs[i])
@@ -335,6 +337,9 @@ for (j in 1:length(AMPs)){
         if (as.character(AMP_data[j,k]) %in% possible_patterns){ #if recovered/returned
             AMP_data_pattern_checked[j,k] = as.character("Yes")
         }
+        else if (as.character(genes_to_test_data[j,k]) == no_change) { #if no change
+            genes_to_test_data_checked[j,k] = as.character("No_change")
+        }
         else{
             AMP_data_pattern_checked[j,k] = as.character("No")
         }
@@ -342,14 +347,180 @@ for (j in 1:length(AMPs)){
 }
 
 AMP_data_converted = cbind(AMP_data[,1:2], AMP_data_pattern_checked[,3:11])
-colnames(AMP_data_converted) = c("gene_id", "gene_name", "Sterile Wound", "M.lutues", "E.coli", "S.marcescens Type", "E.faecalis live", "P.rettgeri live", "Ecc15", "E.faecalis heatkilled", "P.rettgeri heatkilled")
+colnames(AMP_data_converted) = c("gene_id", "gene_name", "Sterile Wound", "M.luteus", "E.coli", "S.marcescens Type", "E.faecalis live", "P.rettgeri live", "Ecc15", "E.faecalis heatkilled", "P.rettgeri heatkilled")
 write.table(AMP_data_converted, file="recovery_genes/Are_AMPs_recovered.txt", row.names = F, col.names = T, quote =F)
 
 
-library(gplots)
-AMP_data_matrix = as.matrix(AMP_data_converted)
-heatmap.2(x=AMP_data_matrix, Rowv= FALSE, Colv = FALSE, dendrogram = "none", cellnote = AMP_data_matrix)
+#What about other functions? (2/27/2017, Updated on 3/18/2017)
+#generic function (input: AmiGo2 output):
+library(ggplot2); library(reshape2); library(klaR); library(RColorBrewer)
+check_recovery_status_by_category = function(address_to_test_category, include) {
+    
+    if(include == "Yes"){
+        input_data = path_data #includes genes that did not change across all conditions
+        colnames(input_data) = colnames(path_data_NS_removed)
+    }
+    else if(include == "No"){
+        input_data= path_data_NS_removed #excludes genes that did not change across all conditions
+    }
+    
+    genes_to_test = read.table(address_to_test_category, header=F, sep="\t")
+    genes_to_test[,1] = sapply(genes_to_test[,1], function(x) {sub("FB:","",x)} )
+    genes_to_test = unique(genes_to_test)
+    
+    possible_patterns = c("Up-Up-EE","Up-EE-EE","Up-Down-EE","EE-Up-EE","EE-Down-EE","Down-Up-EE","Down-EE-EE", "Down-Down-EE")
+    no_change = c("EE-EE-EE")
+    genes_to_test_data = c()
+    for (i in 1:dim(genes_to_test)[1]){
+        genes_to_test_id = as.character(genes_to_test[i,1])
+        genes_to_test_name = as.character(genes_to_test[i,2])
+        tested_data = input_data[which(input_data$gene.id == genes_to_test_id | input_data$gene.name == genes_to_test_name),]
+        if (dim(tested_data)[1] >0){
+            genes_to_test_data = rbind(genes_to_test_data, tested_data)
+        }
+    }
+    
+    genes_to_test_data_checked = matrix(NA, nrow=dim(genes_to_test_data)[1], ncol=dim(genes_to_test_data)[2])
+    for (j in 1:dim(genes_to_test_data)[1]){
+        for (k in 3:dim(genes_to_test_data)[2]){
+            if (as.character(genes_to_test_data[j,k]) %in% possible_patterns){ #if recovered/returned
+                genes_to_test_data_checked[j,k] = as.character("Yes")
+            }
+            else if (as.character(genes_to_test_data[j,k]) == no_change) { #if no change
+                genes_to_test_data_checked[j,k] = as.character("No_change")
+            }
+            else{
+                genes_to_test_data_checked[j,k] = as.character("No")
+            }
+        }
+    }
+    data_converted = cbind(genes_to_test_data[,1:2], genes_to_test_data_checked[,3:dim(genes_to_test_data_checked)[2]])
+    colnames(data_converted) = c("gene_id", "gene_name", "Sterile Wound", "M.luteus", "E.coli", "S.marcescens Type", "E.faecalis live", "P.rettgeri live", "Ecc15", "E.faecalis heatkilled", "P.rettgeri heatkilled")
+    return(data_converted)
+}
+cluster_the_genes_by_pattern = function(response_data, sort_by_gene, number_of_cluster){
+    if (sort_by_gene == "Yes"){ #cluster the genes (by row)
+        cluster.results <-kmodes(response_data[,2:dim(response_data)[2]], number_of_cluster, iter.max = 10, weighted = FALSE)
+    }
+    else if (sort_by_gene == "No") { #cluster the conditions (by conditions)
+        response_data_t = t(response_data)
+        cluster.results <-kmodes(response_data_t[2:dim(response_data_t)[1],], number_of_cluster, iter.max = 10, weighted = FALSE)
+    }
+    
+    cluster_info = unlist(cluster.results[1])
+    return(cluster_info)
+}
+plot_the_recovery_status = function(recovery_status_table, sort_by_gene, clustering_info, condition_name){
+    data = recovery_status_table
+    
+    if (sort_by_gene == "Yes"){
+        condition_order = c("Sterile Wound","M.luteus","E.coli","S.marcescens Type","E.faecalis live","P.rettgeri live", "Ecc15", "E.faecalis heatkilled","P.rettgeri heatkilled")
+        data = cbind(data, clustering_info)
+        data = data[order(data$clustering_info, decreasing =F),] #sort by clustering info
+        data = data[,c(1:(dim(data)[2]-1))] #remove the clustering info
+        gene_order = data[,2]
+        data$gene_id = droplevels(data$gene_id); data$gene_name = droplevels(data$gene_name)
+        data_rearranged <- melt(data, id = c('gene_id', 'gene_name'))
+        data_rearranged$variable = factor(data_rearranged$variable, levels= condition_order)
+        colnames(data_rearranged) = c("gene_id", "gene_name", "condition", "recovery_pattern")
+        data_rearranged$gene_name = factor(data_rearranged$gene_name, levels = gene_order)
+    }
+    else{
+        condition_order = c("Sterile Wound","M.luteus","E.coli","S.marcescens Type","E.faecalis live","P.rettgeri live", "Ecc15", "E.faecalis heatkilled","P.rettgeri heatkilled")
+        condition_order_with_clustering_info = cbind(condition_order, clustering_info)
+        condition_order_with_clustering_info = condition_order_with_clustering_info[order(condition_order_with_clustering_info[,2], decreasing = T),]
+        condition_order = condition_order_with_clustering_info[,1]
+        
+        data$gene_id = droplevels(data$gene_id); data$gene_name = droplevels(data$gene_name)
+        data_rearranged <- melt(data, id = c('gene_id', 'gene_name'))
+        data_rearranged$variable = factor(data_rearranged$variable, levels= condition_order)
+        colnames(data_rearranged) = c("gene_id", "gene_name", "condition", "recovery_pattern")
+    }
+    
+    plot = ggplot(data_rearranged, aes(condition, gene_name, recovery_pattern)) + geom_tile(aes(fill = recovery_pattern), colour = "white") + scale_fill_manual(values=c("#d8b365", "lightgrey", "#5ab4ac")) + ggtitle(paste("Recovery pattern for ", condition_name, sep="") ) + theme(text=element_text(size=15))
+    return(plot)
+}
+visualize_patterns = function(address_to_test_category, include, sort_by_gene, number_of_cluster, condition_name){
+    response_data = check_recovery_status_by_category(address_to_test_category, include)
+    clustering_info = cluster_the_genes_by_pattern(response_data, sort_by_gene, number_of_cluster)
+    plot_the_recovery_status(response_data, sort_by_gene, clustering_info, condition_name)
+} #all put together
+
+
+#1. Response to Wounding -- 38 genes
+#Cluster the patterns by genes
+cluster_number = ceiling(sqrt(38)/2) #determine the number of clusters for clustering by genes
+visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_wounding_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "response to wounding")
+#Cluster the patterns by conditions
+visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_wounding_genes_based_on_AmiGO.txt", "No", "No", 4, "response to wounding")
+
+
+#2. Cuticle development -- 32 genes
+#Cluster the patterns by genes
+cluster_number = ceiling(sqrt(32)/2) #determine the number of clusters for clustering by genes
+visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/cuticle_development_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "cuticle development")
+#Cluster the patterns by conditions
+visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/cuticle_development_genes_based_on_AmiGO.txt", "No", "No", 4, "cuticle development")
+
+
+#3. Response to oxidative stress -- 24 genes
+#Cluster the patterns by genes
+cluster_number = ceiling(sqrt(24)/2) #determine the number of clusters for clustering by genes
+visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_oxidative_stress_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "oxidative stress")
+#Cluster the patterns by conditions
+visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_oxidative_stress_genes_based_on_AmiGO.txt", "No", "No", 4, "oxidative stress")
+
+
+#4. Humoral immune response/AMP production(lower-level category)
+#Humoral immune response -- 53 genes
+#Cluster the patterns by genes
+cluster_number = ceiling(sqrt(53)/2) #determine the number of clusters for clustering by genes
+visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/humoral_immune_response_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "humoral immune response")
+#Cluster the patterns by conditions
+visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/humoral_immune_response_genes_based_on_AmiGO.txt", "No", "No", 4, "humoral immune response")
+
+#AMP production -- 16 genes
+#Cluster the patterns by genes
+cluster_number = ceiling(sqrt(16)/2) #determine the number of clusters for clustering by genes
+visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/AMP_production_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "AMP")
+#Cluster the patterns by conditions
+visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/AMP_production_genes_based_on_AmiGO.txt", "No", "No", 4, "AMP")
+
+
+#5. Metal ion transport and homeostasis -- 34 genes
+#Cluster the patterns by genes
+cluster_number = ceiling(sqrt(34)/2) #determine the number of clusters for clustering by genes
+visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/metal_ion_merged_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "metal ion transport and homeostasis")
+#Cluster the patterns by conditions
+visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/metal_ion_merged_genes_based_on_AmiGO.txt", "No", "No", 4, "metal ion transport and homeostasis")
 
 
 
 
+
+
+
+
+#---
+#6. Imd pathway between E.coli (benign) and Ecc15/P.rettgeri (chronic)
+imd_benign_chronic = check_recovery_status_by_category("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_Gram-negative_potential_Imd_genes_based_on_AmiGO.txt", "Yes") 
+condition_order = c("E.coli","Ecc15","P.rettgeri live"); condition_name = "Imd pathway"
+imd_benign_chronic = imd_benign_chronic[,c(1,2,5,9,8)]
+imd_benign_chronic$gene_id = droplevels(imd_benign_chronic$gene_id); imd_benign_chronic$gene_name = droplevels(imd_benign_chronic$gene_name)
+data_rearranged <- melt(imd_benign_chronic, id = c('gene_id', 'gene_name'))
+data_rearranged$variable = factor(data_rearranged$variable, levels= condition_order)
+colnames(data_rearranged) = c("gene_id", "gene_name", "condition", "recovery_pattern")
+plot = ggplot(data_rearranged, aes(condition, gene_name, recovery_pattern)) + geom_tile(aes(fill = recovery_pattern), colour = "white") + scale_fill_manual(values=c("#d8b365", "lightgrey", "#5ab4ac")) + ggtitle(paste("Recovery pattern for ", condition_name, sep="") ) + theme(text=element_text(size=15))
+plot
+
+print_variable_name <- function(x) {
+    deparse(substitute(x))
+}
+
+
+
+
+
+##
+data = recovery_status_table
+data$gene_id = droplevels(data$gene_id); data$gene_name = droplevels(data$gene_name)
