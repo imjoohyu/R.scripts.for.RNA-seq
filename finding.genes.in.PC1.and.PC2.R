@@ -207,8 +207,6 @@ heatmap.2(as.matrix(expression_data_subset_with_name), Rowv=FALSE, density.info=
 
 
 
-
-
 #========What didn't work: the loadings were done with sample IDs not with gene ids========== (old work, updated as above on 10/4/2016)
 # #DESeq2: I have to run DESeq2 because the PCA function below takes DESeq2 function 'assay()' which is part of the SummarizedExperiment package that DESeq2 automatically loads.
 # library("DESeq2")
