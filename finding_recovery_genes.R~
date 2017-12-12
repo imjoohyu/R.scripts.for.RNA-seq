@@ -134,11 +134,11 @@ recovery_DEGs_table = get_recovery_DEGs(path_data_NS_removed)
 
 
 
-
+<<<<<<< HEAD
 #=============================================================
+=======
 
-
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
 #3. Research questions:
 #3A. What percentage of the active DEGs recovery genes?
 perc_table = data.frame(cbind(as.numeric(as.character(recovery_DEGs_table[,2])), as.numeric(as.character(active_DEGs_table[,2]))))
@@ -158,7 +158,7 @@ perc_table[,5] = perc_table[,3] - perc_table[,2]
 colnames(perc_table)[5] = c("number_of_DEGs_not_recovered")
 datm <- melt(cbind(perc_table[,c(2,5)], condition = perc_table$condition), id.vars = c('condition'))
 
-
+<<<<<<< HEAD
 #Method 1: one color
 # pct = as.character(perc_table$percentage_of_recovery_genes)
 # positions = c("SterileWound", "M.luteus", "E.coli", "S.mar.type", "E.fae.live", "E.fae.heatkilled", "P.rett.live", "P.rett.heatkilled", "Ecc15","At_least_one")
@@ -179,11 +179,11 @@ perc_table = perc_table[c(1:4,7,6,5,9,8),]
 perc_table$condition = factor(perc_table$condition, levels= perc_table$condition, labels = c("Sterile Wound", expression(italic("M. luteus")), expression(italic("E. coli")), expression(paste(italic("S.marcescens"), " Type",sep="")), expression(italic("Ecc15")), expression(italic("P. rettgeri")), expression(italic("E. faecalis")), expression(paste(italic("P. rettgeri"), " hk", sep="")), expression(paste(italic("E. faecalis")," hk",sep=""))))
 
 sep_label = c("Sterile Wound", expression(italic("M. luteus")), expression(italic("E. coli")), expression(paste(italic("S.marcescens"), " Type",sep="")), expression(italic("Ecc15")), expression(italic("P. rettgeri")), expression(italic("E. faecalis")), expression(paste(italic("P. rettgeri"), " hk", sep="")), expression(paste(italic("E. faecalis")," hk",sep="")))
-
+=======
 #The other way to plot this graph with different colors representing different bacterial infections:
 positions = c("SterileWound", "M.luteus", "E.coli", "S.mar.type", "E.fae.live", "E.fae.heatkilled", "P.rett.live", "P.rett.heatkilled", "Ecc15","At_least_one")
 ggplot(data=perc_table, aes(x=condition, y=percentage_of_recovery_genes, fill=condition)) + geom_bar(stat="identity") + scale_fill_manual(values = c("lightgrey", "darkseagreen2", "dark salmon", "coral1", "lightskyblue", "lightpink", "steelblue1", "dodgerblue2", "lightseagreen","azure4"))+ scale_x_discrete(limits = positions) +  scale_y_continuous(limits=c(0,100)) + labs(y = "Percentage (%) of recovery genes") + theme_bw(base_size=14) + guides(fill=FALSE) + geom_text(size=6, aes(label=paste(percentage_of_recovery_genes,"%")))
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
 
 # ggplot(data=perc_table, aes(x=condition, y=percentage_of_recovery_genes, fill=condition)) + geom_bar(stat="identity") + scale_fill_manual(values = c("lightgrey", "lightpink", "darkseagreen2","lightseagreen","lightskyblue", "dodgerblue2", "coral1", "steelblue1", "dark salmon")) +  scale_y_continuous(limits=c(0,100)) + labs(y = "Percentage (%) of recovery genes") + theme_bw(base_size=14) + guides(fill=FALSE) + geom_text(size=5, aes(label=paste(percentage_of_recovery_genes,"%"))) + theme(axis.text.x = element_text(size=13)) + scale_x_discrete(labels = sep_label)
 
@@ -402,22 +402,22 @@ check_recovery_status_by_category = function(address_to_test_category, include) 
         colnames(input_data) = colnames(path_data_NS_removed)
     }
     else if(include == "No"){
-
+<<<<<<< HEAD
         #input_data= path_data_NS_removed #excludes genes that did not change across all conditions
         input_data = path_data_NS_removed_chosen_converted_up_down
-
+=======
         input_data= path_data_NS_removed #excludes genes that did not change across all conditions
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
     }
     
     genes_to_test = read.table(address_to_test_category, header=F, sep="\t")
     genes_to_test[,1] = sapply(genes_to_test[,1], function(x) {sub("FB:","",x)} )
     genes_to_test = unique(genes_to_test)
+<<<<<<< HEAD
 
-
-
+=======
     
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
     possible_patterns = c("Up-Up-EE","Up-EE-EE","Up-Down-EE","EE-Up-EE","EE-Down-EE","Down-Up-EE","Down-EE-EE", "Down-Down-EE")
     no_change = c("EE-EE-EE")
     genes_to_test_data = c()
@@ -445,13 +445,13 @@ check_recovery_status_by_category = function(address_to_test_category, include) 
         }
     }
     data_converted = cbind(genes_to_test_data[,1:2], genes_to_test_data_checked[,3:dim(genes_to_test_data_checked)[2]])
-
+<<<<<<< HEAD
     colnames(data_converted) = c("gene_id", "gene_name", "Sterile Wound","M.luteus", "E.coli", "S.marcescens Type", "E.faecalis", "P.rettgeri", "Ecc15", "E.faecalis heatkilled", "P.rettgeri heatkilled")
     data_converted = data_converted[,c(1:2,4:6,9,8,7,11,10,3)]  #row x 11: changed the order so that its listed based on the virulence level
     
-
+=======
     colnames(data_converted) = c("gene_id", "gene_name", "Sterile Wound", "M.luteus", "E.coli", "S.marcescens Type", "E.faecalis live", "P.rettgeri live", "Ecc15", "E.faecalis heatkilled", "P.rettgeri heatkilled")
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
     return(data_converted)
 }
 cluster_the_genes_by_pattern = function(response_data, sort_by_gene, number_of_cluster){
@@ -466,18 +466,18 @@ cluster_the_genes_by_pattern = function(response_data, sort_by_gene, number_of_c
     cluster_info = unlist(cluster.results[1])
     return(cluster_info)
 }
-
+<<<<<<< HEAD
 plot_the_recovery_status = function(recovery_status_table, sort_by_gene, clustering_info, condition_name, condition_order){
     data = recovery_status_table
     
     if (sort_by_gene == "Yes"){
-
+=======
 plot_the_recovery_status = function(recovery_status_table, sort_by_gene, clustering_info, condition_name){
     data = recovery_status_table
     
     if (sort_by_gene == "Yes"){
         condition_order = c("Sterile Wound","M.luteus","E.coli","S.marcescens Type","E.faecalis live","P.rettgeri live", "Ecc15", "E.faecalis heatkilled","P.rettgeri heatkilled")
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
         data = cbind(data, clustering_info)
         data = data[order(data$clustering_info, decreasing =F),] #sort by clustering info
         data = data[,c(1:(dim(data)[2]-1))] #remove the clustering info
@@ -488,12 +488,12 @@ plot_the_recovery_status = function(recovery_status_table, sort_by_gene, cluster
         colnames(data_rearranged) = c("gene_id", "gene_name", "condition", "recovery_pattern")
         data_rearranged$gene_name = factor(data_rearranged$gene_name, levels = gene_order)
     }
-
+<<<<<<< HEAD
     else{ #sort by conditions
-
+=======
     else{
         condition_order = c("Sterile Wound","M.luteus","E.coli","S.marcescens Type","E.faecalis live","P.rettgeri live", "Ecc15", "E.faecalis heatkilled","P.rettgeri heatkilled")
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
         condition_order_with_clustering_info = cbind(condition_order, clustering_info)
         condition_order_with_clustering_info = condition_order_with_clustering_info[order(condition_order_with_clustering_info[,2], decreasing = T),]
         condition_order = condition_order_with_clustering_info[,1]
@@ -504,7 +504,7 @@ plot_the_recovery_status = function(recovery_status_table, sort_by_gene, cluster
         colnames(data_rearranged) = c("gene_id", "gene_name", "condition", "recovery_pattern")
     }
     
-
+<<<<<<< HEAD
     plot = ggplot(data_rearranged, aes(condition, gene_name, recovery_pattern)) + geom_tile(aes(fill = recovery_pattern), colour = "white") + scale_fill_manual(values=c("#d8b365", "lightgrey", "#5ab4ac")) + ggtitle(paste("Recovery pattern for ", condition_name, sep="") ) + theme(text=element_text(size=16)) + theme(legend.text = element_text(size = 15))
     return(plot)
 }
@@ -512,96 +512,96 @@ plot_the_recovery_status = function(recovery_status_table, sort_by_gene, cluster
 #if include=yes, it includes genes that did not change across all conditions
 #if sort_by_gene=yes, it clusters the genes (by row)
 visualize_patterns = function(address_to_test_category, include, sort_by_gene, number_of_cluster, condition_name, condition_order){
-
+=======
     plot = ggplot(data_rearranged, aes(condition, gene_name, recovery_pattern)) + geom_tile(aes(fill = recovery_pattern), colour = "white") + scale_fill_manual(values=c("#d8b365", "lightgrey", "#5ab4ac")) + ggtitle(paste("Recovery pattern for ", condition_name, sep="") ) + theme(text=element_text(size=15))
     return(plot)
 }
 visualize_patterns = function(address_to_test_category, include, sort_by_gene, number_of_cluster, condition_name){
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
     response_data = check_recovery_status_by_category(address_to_test_category, include)
     clustering_info = cluster_the_genes_by_pattern(response_data, sort_by_gene, number_of_cluster)
     plot_the_recovery_status(response_data, sort_by_gene, clustering_info, condition_name)
 } #all put together
 
-
+<<<<<<< HEAD
 condition_order = c("M.luteus","E.coli","S.marcescens Type", "Ecc15", "P.rettgeri", "E.faecalis", "P.rettgeri heatkilled", "E.faecalis heatkilled","Sterile Wound") #ordered by the level of virulence
-
-
+=======
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
 
 #1. Response to Wounding -- 38 genes
 #Cluster the patterns by genes
 cluster_number = ceiling(sqrt(38)/2) #determine the number of clusters for clustering by genes
-
+<<<<<<< HEAD
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_wounding_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "response to wounding", condition_order)
 #Cluster the patterns by conditions
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_wounding_genes_based_on_AmiGO.txt", "No", "No", 4, "response to wounding", condition_order)
-
+=======
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_wounding_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "response to wounding")
 #Cluster the patterns by conditions
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_wounding_genes_based_on_AmiGO.txt", "No", "No", 4, "response to wounding")
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
 
 
 #2. Cuticle development -- 32 genes
 #Cluster the patterns by genes
 cluster_number = ceiling(sqrt(32)/2) #determine the number of clusters for clustering by genes
-
+<<<<<<< HEAD
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/cuticle_development_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "cuticle development", condition_order)
 #Cluster the patterns by conditions
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/cuticle_development_genes_based_on_AmiGO.txt", "No", "No", 4, "cuticle development", condition_order)
-
+=======
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/cuticle_development_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "cuticle development")
 #Cluster the patterns by conditions
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/cuticle_development_genes_based_on_AmiGO.txt", "No", "No", 4, "cuticle development")
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
 
 
 #3. Response to oxidative stress -- 24 genes
 #Cluster the patterns by genes
 cluster_number = ceiling(sqrt(24)/2) #determine the number of clusters for clustering by genes
-
+<<<<<<< HEAD
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_oxidative_stress_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "oxidative stress", condition_order)
 #Cluster the patterns by conditions
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_oxidative_stress_genes_based_on_AmiGO.txt", "No", "No", 4, "oxidative stress", condition_order)
-
+=======
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_oxidative_stress_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "oxidative stress")
 #Cluster the patterns by conditions
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_oxidative_stress_genes_based_on_AmiGO.txt", "No", "No", 4, "oxidative stress")
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
 
 
 #4. Humoral immune response/AMP production(lower-level category)
 #Humoral immune response -- 53 genes
 #Cluster the patterns by genes
 cluster_number = ceiling(sqrt(53)/2) #determine the number of clusters for clustering by genes
-
+<<<<<<< HEAD
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/humoral_immune_response_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "humoral immune response", condition_order)
 #Cluster the patterns by conditions
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/humoral_immune_response_genes_based_on_AmiGO.txt", "No", "No", 4, "humoral immune response", condition_order)
-
+=======
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/humoral_immune_response_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "humoral immune response")
 #Cluster the patterns by conditions
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/humoral_immune_response_genes_based_on_AmiGO.txt", "No", "No", 4, "humoral immune response")
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
 
 #AMP production -- 16 genes
 #Cluster the patterns by genes
 cluster_number = ceiling(sqrt(16)/2) #determine the number of clusters for clustering by genes
-
+<<<<<<< HEAD
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/AMP_production_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "AMP", condition_order)
 #Cluster the patterns by conditions
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/AMP_production_genes_based_on_AmiGO.txt", "No", "No", 4, "AMP",condition_order)
-
+=======
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/AMP_production_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "AMP")
 #Cluster the patterns by conditions
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/AMP_production_genes_based_on_AmiGO.txt", "No", "No", 4, "AMP")
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
 
 
 #5. Metal ion transport and homeostasis -- 34 genes
 #Cluster the patterns by genes
 cluster_number = ceiling(sqrt(34)/2) #determine the number of clusters for clustering by genes
-
+<<<<<<< HEAD
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/metal_ion_merged_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "metal ion transport and homeostasis", condition_order)
 #Cluster the patterns by conditions
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/metal_ion_merged_genes_based_on_AmiGO.txt", "No", "No", 4, "metal ion transport and homeostasis", condition_order)
@@ -629,7 +629,7 @@ visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gen
 #cluster_number = ceiling(sqrt(86)/2) #determine the number of clusters for clustering by genes
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/JNK_cascade_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "JNK cascade", condition_order)
 
-
+=======
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/metal_ion_merged_genes_based_on_AmiGO.txt", "No", "Yes", cluster_number, "metal ion transport and homeostasis")
 #Cluster the patterns by conditions
 visualize_patterns("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/metal_ion_merged_genes_based_on_AmiGO.txt", "No", "No", 4, "metal ion transport and homeostasis")
@@ -656,13 +656,13 @@ plot
 print_variable_name <- function(x) {
     deparse(substitute(x))
 }
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c
 
 
 
 
 
-
-
+<<<<<<< HEAD
 #8. Imd pathway between E.coli (benign) and Ecc15/P.rettgeri (chronic) --- old
 imd_benign_chronic = check_recovery_status_by_category("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/gene_sets/response_to_Gram-negative_potential_Imd_genes_based_on_AmiGO.txt", "Yes") 
 condition_order = c("E.coli","Ecc15","P.rettgeri live"); condition_name = "Imd pathway"
@@ -982,7 +982,8 @@ down_non = colSums(path_data_NS_removed_chosen_converted_up_down_split == "No-do
 # ##
 # data = recovery_status_table
 # data$gene_id = droplevels(data$gene_id); data$gene_name = droplevels(data$gene_name)
+=======
 ##
 data = recovery_status_table
 data$gene_id = droplevels(data$gene_id); data$gene_name = droplevels(data$gene_name)
-
+>>>>>>> e6d43d19c3efee149aaf12f7c3dea8ca7140709c

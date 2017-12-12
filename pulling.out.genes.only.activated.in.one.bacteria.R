@@ -30,6 +30,9 @@ for (i in 1:length.of.table){ #1, 2, 3, ... 2589
         
     }
 }
+#write.table(data_table[,c(1,2,seq(3,63,2))], file="edgeR_basic_comparison_FDR_converted_to_Y-N_at_least_one_sig_direction.txt", quote=F, row.names = F,col.names = T)
+write.table(data_table[,c(1,2,seq(9,43,2))], file="edgeR_basic_comparison_FDR_converted_to_Y-N_at_least_one_sig_direction_6_live_only.txt", quote=F, row.names = F,col.names = T)
+
 
 
 ####
@@ -85,10 +88,10 @@ pull_out_genes_only_activated_in_one_condition = function(direction){
     
     colnames(percentage_of_unique_genes) = c("condition","total_number_of_unique_DEGs_in_this_condition", "total_number_of_DEGs_in_this_condition", "percentage_of_unique_genes")
     if (direction == "Up"){
-        write.table(percentage_of_unique_genes, file = "../specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_percentage_of_unique_upreg_genes_including_cleanprick_and_heatkilled.txt", col.names = T, row.names = F, quote=F)
+        #write.table(percentage_of_unique_genes, file = "../specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_percentage_of_unique_upreg_genes_including_cleanprick_and_heatkilled.txt", col.names = T, row.names = F, quote=F)
     }
     if (direction == "Down"){
-        write.table(percentage_of_unique_genes, file = "../specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_percentage_of_unique_downreg_genes_including_cleanprick_and_heatkilled.txt", col.names = T, row.names = F, quote=F)
+        #write.table(percentage_of_unique_genes, file = "../specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_percentage_of_unique_downreg_genes_including_cleanprick_and_heatkilled.txt", col.names = T, row.names = F, quote=F)
     }
     
     return(percentage_of_unique_genes)
@@ -98,7 +101,7 @@ down_genes = pull_out_genes_only_activated_in_one_condition("Down")
 
 
 
-#Method II. a gene that changes expression significantly in one and only one infection condition regardless of time points (collapsing time).
+#Method II. a gene that changes expression significantly in one and only one infection condition regardless of time points (collapsing time).***********
 #1. From the data.table, find the genes that were significant in a given condition
 #2. Now with the list of genes that were significant in a given condition, only select genes that have no significant expression in any other infection conditions.
 condition_list = c(3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,53,55,57,33,35,37,59,61,63,39,41,43,45,47,49,51) #all time points
@@ -164,16 +167,16 @@ pull_out_genes_only_activated_in_one_condition_ignoring_time = function(directio
         percentage_of_unique_genes[k,3] = total_number_of_DEGs_in_this_condition
         percentage_of_unique_genes[k,4] = as.numeric(total_number_of_unique_DEGs_in_this_condition/total_number_of_DEGs_in_this_condition)
         
-        write.table(subset_data_table_cross_check_with_other_conditions_final, file=paste("../specific.comparisons/genes_uniquely_regulated_by_each_condition/uniquely_",direction,"regulated_by_",condition_name_list[k],"_ignoring_time.txt",sep=""), col.names=T, row.names=F, quote=F)
+        #write.table(subset_data_table_cross_check_with_other_conditions_final, file=paste("../specific.comparisons/genes_uniquely_regulated_by_each_condition/uniquely_",direction,"regulated_by_",condition_name_list[k],"_ignoring_time.txt",sep=""), col.names=T, row.names=F, quote=F)
         
     }
     
     colnames(percentage_of_unique_genes) = c("condition","total_number_of_unique_DEGs_in_this_condition", "total_number_of_DEGs_in_this_condition", "percentage_of_unique_genes")
     if (direction == "Up"){
-        write.table(percentage_of_unique_genes, file = "../specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_percentage_of_unique_upreg_genes_including_cleanprick_and_heatkilled_ignoring_time.txt", col.names = T, row.names = F, quote=F)
+        #write.table(percentage_of_unique_genes, file = "../specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_percentage_of_unique_upreg_genes_including_cleanprick_and_heatkilled_ignoring_time.txt", col.names = T, row.names = F, quote=F)
     }
     if (direction == "Down"){
-        write.table(percentage_of_unique_genes, file = "../specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_percentage_of_unique_downreg_genes_including_cleanprick_and_heatkilled_ignoring_time.txt", col.names = T, row.names = F, quote=F)
+        #write.table(percentage_of_unique_genes, file = "../specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_percentage_of_unique_downreg_genes_including_cleanprick_and_heatkilled_ignoring_time.txt", col.names = T, row.names = F, quote=F)
     }
     
     return(percentage_of_unique_genes)
@@ -210,26 +213,28 @@ down_genes = pull_out_genes_only_activated_in_one_condition_ignoring_time("Down"
 # Draw_a_graph(up_genes, "Up"); Draw_a_graph(down_genes, "Down")
 
 
-#4. Create a dendrogram based on the original data
-data_table <- read.table("edgeR_basic_comparison_pval_at_least_one_sig.txt",header=T)
-library(gplots); library(RColorBrewer)
-my_palette = colorRampPalette(c("red","black","green"))(n = 299)
-
-#Dendrogram based on every sample
-odd_index = seq(3,64,2)
-data_table_FC_only = data_table[,c(odd_index)]; rownames(data_table_FC_only) = data_table[,1]
-heatmap.2(as.matrix(data_table_FC_only), Rowv=FALSE, density.info="none", dendrogram="column", trace="none", scale=c("column"), col=my_palette)
-
-#Dendrogram based on 12hr sample >> This pattern goes well with the PCA pattern as expected (12/9/2016)
-data_table_FC_only_12hr = data_table_FC_only[,c(1,4,7,10,13,16,19,22,23,24,25,26,29)] #12hr sample only
-heatmap.2(as.matrix(data_table_FC_only_12hr), Rowv=FALSE, density.info="none", dendrogram="column", trace="none", scale=c("column"), col=my_palette, srtCol=45)
+#4. Create a dendrogram based on the original data -- see creating_a_dendrogram.R script (2/28/2017)
+# rm(list=ls(all=TRUE)) #delete any previous entry
+# setwd("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/edgeR_results_with_cpm_filter_all_UCs_Nov_2015")
+# data_table <- read.table("edgeR_basic_comparison_pval_at_least_one_sig.txt",header=T)
+# library(gplots); library(RColorBrewer)
+# my_palette = colorRampPalette(c("red","black","green"))(n = 299)
+# 
+# #Dendrogram based on every sample (takes a long time)
+# odd_index = seq(3,64,2)
+# data_table_FC_only = data_table[,c(odd_index)]; rownames(data_table_FC_only) = data_table[,1]
+# heatmap.2(as.matrix(data_table_FC_only), Rowv=FALSE, density.info="none", dendrogram="column", trace="none", scale=c("column"), col=my_palette)
+# 
+# #Dendrogram based on 12hr sample >> This pattern goes well with the PCA pattern as expected (12/9/2016)
+# odd_index = seq(3,64,2)
+# data_table_FC_only = data_table[,c(odd_index)]; rownames(data_table_FC_only) = data_table[,1]
+# data_table_FC_only_12hr = data_table_FC_only[,c(1,4,7,10,13,16,19,22,23,24,25,26,29)] #12hr sample only
+# heatmap.2(as.matrix(data_table_FC_only_12hr), Rowv=FALSE, density.info="none", dendrogram="column", trace="none", scale=c("column"), col=my_palette, srtCol=45)
 
 
 #5. Change the order of the data table and plot a bar chart in the order of the dendrogram
 up_genes_rearranged = rbind(up_genes[10,],up_genes[7,],up_genes[13,],up_genes[1,],up_genes[9,],up_genes[6,],up_genes[8,],up_genes[5,],up_genes[2,],up_genes[12,],up_genes[11,],up_genes[4,],up_genes[3,])
 down_genes_rearranged = rbind(down_genes[10,],down_genes[7,],down_genes[13,],down_genes[1,],down_genes[9,],down_genes[6,],down_genes[8,],down_genes[5,],down_genes[2,],down_genes[12,],down_genes[11,],down_genes[4,],down_genes[3,])
-
-
 
 par(mfrow = c(2,1))
 Draw_a_graph_rev = function(data, direction){
@@ -264,12 +269,40 @@ Draw_a_graph_rev = function(data, direction){
 }
 Draw_a_graph_rev(up_genes_rearranged, "Up"); Draw_a_graph_rev(down_genes_rearranged, "Down")
 
+#Offset the percentage (8/2/2017)
+par(mfrow = c(2,1))
+par(mar=c(5,8,4,2)) #increase the margins around the graph
+Draw_a_graph_rev = function(data, direction){
+    color_list_2 = c("orangered3","dodgerblue2","purple3","azure4","lightskyblue","dark salmon","steelblue1","coral1","lightpink","navy","blue","lightseagreen","darkseagreen2")
+    condition_name_list_name_changed = c("S.aureus","PE","P.rettgeri","S.mar Db11","E.faecalis.hk","P.rettgeri.hk","M.luteus","E.faecalis", "E.coli","S.mar Type","Ecc15","P.sneebia","SterileWound") #to more concise names for the graph
+    #data$condition = factor(data$condition, levels = condition_name_list_name_changed, labels = c("italic(S. aureus)","italic(P. entomophila)","italic(P. rettgeri)",expression(paste(italic("S.marcescens"), " Db11",sep="")),expression(paste(italic("E.faecalis")," HK",sep="")),expression(paste(italic("P.rettgeri"), " HK", sep="")),"italic(M. luteus)", "italic(E. faecalis)", "italic(E. coli)", expression(paste(italic("S. marcescens"), " Type",sep="")), "italic(Ecc15)", "italic(P. sneebia)", "Sterile Wound")) 
+    
+    
+    percentage_list = as.numeric(data[,4]); percentage_list = percentage_list*100
+    coor=c(0.72, 1.88, 3.1, 4.3, 5.5, 6.7, 7.9, 9.1, 10.3, 11.5, 12.7, 13.9, 15.1)
+    
+    if (direction == "Up"){
+        barplot(percentage_list, ylab = "Percentage of unique Up-DEGs (%)", names.arg=data[,1], col= color_list_2, ylim=c(0,100), las=2)
+        for (m in 1:length(percentage_list)){
+            text(coor[m], 50, paste(round(percentage_list[m],1),"%",sep=""))
+        }
+    }
+    else{
+        barplot(percentage_list, ylab = "Percentage of unique Down-DEGs (%)", names.arg=data[,1], col= color_list_2, ylim=c(100,0), las=2)
+        for (m in 1:length(percentage_list)){
+            text(coor[m], 50, paste(round(percentage_list[m],1),"%",sep=""))
+        }
+    }
+}
+Draw_a_graph_rev(up_genes_rearranged, "Up"); Draw_a_graph_rev(down_genes_rearranged, "Down")
+
 
 #Added on 2/16/2017 (Thur)
 #6.Plot the number of DEGs and overlay the number of unique DEGs on top.
 dim(data_table) #input data with the direction
 
 condition_name_list = c("SterileWound","M.luteus","E.coli","S.marcescens","E.faecalis","E.faecalis.hk","P.rettgeri","P.rettgeri.hk","Ecc15","S.aureus","P.sneebia","S.marcescens_Db11","P.entomophila")
+condition_name_list_name_changed = c("S.aureus","PE","P.rettgeri","S.mar Db11","E.faecalis.hk","P.rettgeri.hk","M.luteus","E.faecalis", "E.coli","S.mar Type","Ecc15","P.sneebia","SterileWound") #to more concise names for the graph
 condition_list = c(3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,53,55,57,33,35,37,59,61,63,39,41,43,45,47,49,51) #all time points
 
 Get_the_number_of_DEGs_and_unique_genes = function(input_data, direction){
@@ -277,7 +310,7 @@ Get_the_number_of_DEGs_and_unique_genes = function(input_data, direction){
     
     for (i in 1:length(condition_name_list)){ #for each condition
         
-        unique_genes = read.table(paste("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/specific.comparisons/genes_uniquely_regulated_by_each_condition/uniquely_",direction,"regulated_by_",condition_name_list[i],"_ignoring_time.txt",sep=""), header=T)
+        unique_genes = read.table(paste("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/specific.comparisons/genes_uniquely_regulated_by_each_condition/unique_genes_ignoring_time/uniquely_",direction,"regulated_by_",condition_name_list[i],"_ignoring_time.txt",sep=""), header=T)
         
         unique_genes_only = unique_genes[,1]
         tp12 = NULL; tp36 = NULL; tp55 = NULL; data_to_add = NULL
@@ -291,22 +324,22 @@ Get_the_number_of_DEGs_and_unique_genes = function(input_data, direction){
             tp36_intersect = intersect(unique_genes_only, tp36[,1])
             tp55_intersect = intersect(unique_genes_only, tp55[,1])
             
-            data_to_add = c(condition_name_list[i], dim(tp12)[1], dim(tp36)[1], dim(tp55)[1], length(tp12_intersect), length(tp36_intersect), length(tp55_intersect))
+            data_to_add = c(condition_name_list_name_changed[i], dim(tp12)[1], dim(tp36)[1], dim(tp55)[1], length(tp12_intersect), length(tp36_intersect), length(tp55_intersect))
         }
         else { #for conditions with one time point only
             tp12 = input_data[which(input_data[,condition_list[i+18]] == direction),]
             tp12_intersect = intersect(unique_genes_only, tp12[,1])
             
-            data_to_add = c(condition_name_list[i], dim(tp12)[1], 0, 0, length(tp12_intersect), 0, 0)
+            data_to_add = c(condition_name_list_name_changed[i], dim(tp12)[1], 0, 0, length(tp12_intersect), 0, 0)
         }
         table_of_DEG_and_unique_DEG = rbind(table_of_DEG_and_unique_DEG, data_to_add)
     }
     return(table_of_DEG_and_unique_DEG)
 }
-upregulated_uniq_DEG = Get_the_number_of_DEGs_and_unique_genes(data_table, "Up"); colnames(upregulated_uniq_DEG) = c("condition","12hr","36hr","132hr","12hr_uniq","36hr_uniq","132hr_uniq")
-downregulated_uniq_DEG = Get_the_number_of_DEGs_and_unique_genes(data_table, "Down"); colnames(downregulated_uniq_DEG) = c("condition","12hr","36hr","132hr","12hr_uniq","36hr_uniq","132hr_uniq") #has an error msg when i=1 because there's no unique gene. But the code works.
-write.table(upregulated_uniq_DEG, file="/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_DEG_and_unique_DEG_Upregulated.txt", quote=F, row.names = F, col.names=T)
-write.table(downregulated_uniq_DEG, file="/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_DEG_and_unique_DEG_Downregulated.txt", quote=F, row.names = F, col.names=T)
+upregulated_uniq_DEG = Get_the_number_of_DEGs_and_unique_genes(data_table, "Up"); colnames(upregulated_uniq_DEG) = c("condition","12h","36h","132h","12hr_uniq","36hr_uniq","132hr_uniq")
+downregulated_uniq_DEG = Get_the_number_of_DEGs_and_unique_genes(data_table, "Down"); colnames(downregulated_uniq_DEG) = c("condition","12h","36h","132h","12hr_uniq","36hr_uniq","132hr_uniq") #has an error msg when i=1 because there's no unique gene in uniquely_Downregulated_by_SterileWound_ignoring_time.txt. But the code works.
+#write.table(upregulated_uniq_DEG, file="/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_DEG_and_unique_DEG_Upregulated.txt", quote=F, row.names = F, col.names=T)
+#write.table(downregulated_uniq_DEG, file="/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/specific.comparisons/genes_uniquely_regulated_by_each_condition/table_of_DEG_and_unique_DEG_Downregulated.txt", quote=F, row.names = F, col.names=T)
 
 
 format_the_data = function(input_data){
@@ -341,34 +374,53 @@ format_the_data = function(input_data){
     return(output)
 } #gets an error msg but it works.
 upregulated_uniq_DEG_formatted = as.data.frame(format_the_data(upregulated_uniq_DEG)); colnames(upregulated_uniq_DEG_formatted) = c("Condition","Time","Type","Count")
-upregulated_uniq_DEG_formatted[,2] = sub("X12hr", "12hr", x = upregulated_uniq_DEG_formatted[,2] )
-upregulated_uniq_DEG_formatted[,2] = sub("X36hr", "36hr", x = upregulated_uniq_DEG_formatted[,2] )
-upregulated_uniq_DEG_formatted[,2] = sub("X132hr", "132hr", x = upregulated_uniq_DEG_formatted[,2] )
-downregulated_uniq_DEG_formatted = as.data.frame(format_the_data(downregulated_uniq_DEG)); colnames(downregulated_uniq_DEG_formatted) =c("Condition","Time","Type","Count")
-downregulated_uniq_DEG_formatted[,2] =sub("X12hr", "12hr", x = downregulated_uniq_DEG_formatted[,2] )
-downregulated_uniq_DEG_formatted[,2] =sub("X36hr", "36hr", x = downregulated_uniq_DEG_formatted[,2] )
-downregulated_uniq_DEG_formatted[,2] =sub("X132hr", "132hr", x = downregulated_uniq_DEG_formatted[,2] )
+upregulated_uniq_DEG_formatted[,2] = sub("X12h", "12h", x = upregulated_uniq_DEG_formatted[,2] )
+upregulated_uniq_DEG_formatted[,2] = sub("X36h", "36h", x = upregulated_uniq_DEG_formatted[,2] )
+upregulated_uniq_DEG_formatted[,2] = sub("X132h", "132h", x = upregulated_uniq_DEG_formatted[,2] )
+upregulated_uniq_DEG_formatted[,3] = sub("Unique", "Unique DEG", x = upregulated_uniq_DEG_formatted[,3] )
+upregulated_uniq_DEG_formatted[,1] = sub("P.entomophila", "PE", x = upregulated_uniq_DEG_formatted[,1] )
+upregulated_uniq_DEG_formatted[,1] = sub("S.marcescens_Db11", "S.mar Db11", x = upregulated_uniq_DEG_formatted[,1] )
+upregulated_uniq_DEG_formatted[,1] = sub("S.marcescens", "S.mar Type", x = upregulated_uniq_DEG_formatted[,1] )
+upregulated_uniq_DEG_formatted[,1] = sub("E.faecalis.hk", "E.faecalis HK", x = upregulated_uniq_DEG_formatted[,1] )
+upregulated_uniq_DEG_formatted[,1] = sub("P.rettgeri.hk", "P.rettgeri HK", x = upregulated_uniq_DEG_formatted[,1] )
 
+
+downregulated_uniq_DEG_formatted = as.data.frame(format_the_data(downregulated_uniq_DEG)); colnames(downregulated_uniq_DEG_formatted) =c("Condition","Time","Type","Count")
+downregulated_uniq_DEG_formatted[,2] =sub("X12h", "12h", x = downregulated_uniq_DEG_formatted[,2] )
+downregulated_uniq_DEG_formatted[,2] =sub("X36h", "36h", x = downregulated_uniq_DEG_formatted[,2] )
+downregulated_uniq_DEG_formatted[,2] =sub("X132h", "132h", x = downregulated_uniq_DEG_formatted[,2] )
+downregulated_uniq_DEG_formatted[,3] = sub("Unique", "Unique DEG", x = downregulated_uniq_DEG_formatted[,3] )
+downregulated_uniq_DEG_formatted[,1] = sub("P.entomophila", "PE", x = downregulated_uniq_DEG_formatted[,1] )
+downregulated_uniq_DEG_formatted[,1] = sub("S.marcescens_Db11", "S.mar Db11", x = downregulated_uniq_DEG_formatted[,1] )
+downregulated_uniq_DEG_formatted[,1] = sub("S.marcescens", "S.mar Type", x = downregulated_uniq_DEG_formatted[,1] )
+downregulated_uniq_DEG_formatted[,1] = sub("E.faecalis.hk", "E.faecalis HK", x = downregulated_uniq_DEG_formatted[,1] )
+downregulated_uniq_DEG_formatted[,1] = sub("P.rettgeri.hk", "P.rettgeri HK", x = downregulated_uniq_DEG_formatted[,1] )
 
 library(ggplot2); library(grid); library(gridExtra)
 grid.newpage(); pushViewport(viewport(layout = grid.layout(2,1 )))
 vplayout <- function(x, y) viewport(layout.pos.row = x, layout.pos.col = y)
 
 Draw_a_plot = function(input_data, direction){
-    #condition_order = c("SterileWound","M.luteus","E.coli","S.marcescens","E.faecalis","E.faecalis.hk","P.rettgeri","P.rettgeri.hk","Ecc15","S.aureus","P.sneebia","S.marcescens_Db11","P.entomophila")
-    condition_order = c("S.aureus","P.rettgeri","P.entomophila","SterileWound","Ecc15","E.faecalis.hk","P.rettgeri.hk","E.faecalis","M.luteus","S.marcescens_Db11","P.sneebia","S.marcescens","E.coli") #order by dendrogram
-    time_order = c("12hr", "36hr", "132hr")
+    #condition_order = c("SterileWound","M.luteus","E.coli","S.marcescens","E.faecalis","E.faecalis hk","P.rettgeri","P.rettgeri hk","Ecc15","S.aureus","P.sneebia","S.marcescens Db11","P.entomophila")
+    #condition_order = c("S.aureus","P.entomophila","P.rettgeri","S.marcescens_Db11","Ecc15","E.faecalis.hk","P.rettgeri.hk","M.luteus","E.faecalis","P.sneebia","E.coli","S.marcescens") #order by dendrogram
+    #condition_order = c("S.aureus","P.entomophila","P.rettgeri","S.marcescens_Db11","M.luteus","E.faecalis","E.coli","S.marcescens","Ecc15","P.sneebia","E.faecalis.hk","P.rettgeri.hk","SterileWound") #order by dendrogram when excluding controls
+    condition_order = c("S.aureus","PE","P.rettgeri","S.mar Db11","E.faecalis HK","P.rettgeri HK","M.luteus","E.faecalis", "E.coli","S.mar Type","Ecc15","P.sneebia","SterileWound")
+    time_order = c("12h", "36h", "132h")
+    
     if (direction == "Up"){
         input_data[,4] = as.numeric(as.character(input_data[,4]))
-        input_data$Condition = factor(input_data$Condition, levels= condition_order)
+        #input_data$Condition = factor(input_data$Condition, levels= condition_order, labels = c("italic(S.aureus)","italic(P.entomophila)","italic(P.rettgeri)",expression(paste(italic("S.marcescens"), "_Db11",sep="")),"SterileWound","italic(Ecc15)", expression(paste(italic("E.faecalis"), ".hk", sep="")), expression(paste(italic("P.rettgeri"),".hk",sep="")),"italic(M.luteus)","italic(E.faecalis)","italic(P.sneebia)","italic(E.coli)","italic(S.marcescens)"))
+        input_data$Condition = factor(input_data$Condition, levels= condition_order, labels = c("italic(S.aureus)","italic(PE)","italic(P.rettgeri)",expression(paste(italic("S.mar"), " Db11",sep="")),expression(paste(italic("E.faecalis")," HK",sep="")),expression(paste(italic("P.rettgeri"), " HK", sep="")),"italic(M.luteus)", "italic(E.faecalis)", "italic(E.coli)", expression(paste(italic("S.mar"), " Type",sep="")), "italic(Ecc15)", "italic(P.sneebia)", "SterileWound")) #changed when dendrogram only covered live infections
         input_data$Time = factor(input_data$Time, levels= time_order)
-        plot = ggplot(input_data, aes(x=Time,y=Count,fill=Type)) + geom_bar(stat = "identity",color="white") + facet_wrap(~Condition,nrow=1) + scale_fill_manual(values = c("black", "orange")) + scale_y_continuous(limits=c(0,750)) + theme_bw(base_size=14)
+        plot = ggplot(input_data, aes(x=Time,y=Count,fill=Type)) + geom_bar(stat = "identity",color="white") + scale_fill_manual(values = c("black", "orange")) + scale_y_continuous(limits=c(0,750)) + theme_bw(base_size=24) + facet_wrap(~Condition, labeller = label_parsed, nrow=1) + theme(axis.text.x = element_text(size=24), strip.text.x = element_text(size=24), legend.position="top")
+
     }
     else{
         input_data[,4] = as.numeric(as.character(input_data[,4]))
-        input_data$Condition = factor(input_data$Condition, levels= condition_order)
+        #input_data$Condition = factor(input_data$Condition, levels= condition_order, labels = c("italic(S.aureus)","italic(P.entomophila)","italic(P.rettgeri)",expression(paste(italic("S.marcescens"), "_Db11",sep="")),"SterileWound","italic(Ecc15)", expression(paste(italic("E.faecalis"), ".hk", sep="")), expression(paste(italic("P.rettgeri"),".hk",sep="")),"italic(M.luteus)","italic(E.faecalis)","italic(P.sneebia)","italic(E.coli)","italic(S.marcescens)"))#changed when dendrogram only covered live infections
+        input_data$Condition = factor(input_data$Condition, levels= condition_order, labels = c("italic(S.aureus)","italic(PE)","italic(P.rettgeri)",expression(paste(italic("S.mar"), " Db11",sep="")),expression(paste(italic("E.faecalis")," HK",sep="")),expression(paste(italic("P.rettgeri"), " HK", sep="")),"italic(M.luteus)", "italic(E.faecalis)", "italic(E.coli)", expression(paste(italic("S.mar"), " Type",sep="")), "italic(Ecc15)", "italic(P.sneebia)", "SterileWound")) #changed when dendrogram only covered live infections
         input_data$Time = factor(input_data$Time, levels= time_order)
-        plot = ggplot(input_data, aes(x=Time,y=Count,fill=Type)) + geom_bar(stat = "identity",color="white") + facet_wrap(~Condition,nrow=1) + scale_fill_manual(values = c("black", "orange")) + scale_y_continuous(limits=c(0,750)) + theme_bw(base_size=14) + scale_y_reverse()
+        plot = ggplot(input_data, aes(x=Time,y=Count,fill=Type)) + geom_bar(stat = "identity",color="white") + facet_wrap(~Condition, labeller = label_parsed, nrow=1) + scale_fill_manual(values = c("black", "orange")) + scale_y_continuous(limits=c(0,750)) + theme_bw(base_size=24) + theme(axis.text.x = element_text(size=24), strip.text.x = element_text(size=24), legend.position="bottom" ) + scale_y_reverse()
     }
     return(plot)
 }

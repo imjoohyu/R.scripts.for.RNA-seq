@@ -1,6 +1,6 @@
 ####################################################
 #Assign expression paths to genes using the information from edgeR
-#August 27, 2016 (updated on Sept 6, 2016 and October 28, 2016)
+#December 10, 2016
 #Joo Hyun Im (ji72)
 ####################################################
 
@@ -31,10 +31,7 @@ unchallenged.0hr = CountTable[,c(1:3,35:37,69:71)]; clean.prick.12hr = CountTabl
 ####################################################
 #DE Analysis using edgeR: unchallenged (0hr) vs infected (12hr, 36hr, 5.5d)
 list.of.name.of.conditions <- c("clean.prick.12hr", "clean.prick.36hr", "clean.prick.5.5d", "M.luteus.12hr", "M.luteus.36hr", "M.luteus.5.5d", "E.coli.12hr", "E.coli.36hr", "E.coli.5.5d", "S.mar.type.12hr", "S.mar.type.36hr", "S.mar.type.5.5d", "E.fae.live.12hr", "E.fae.live.36hr", "E.fae.live.5.5d", "P.rett.live.12hr", "P.rett.live.36hr", "P.rett.live.5.5d", "Ecc15.12hr", "Ecc15.36hr", "Ecc15.5.5d", "S.aureus.12hr", "P.sneebia.12hr", "S.mar.Db11.12hr", "P.ento.12hr", "E.fae.heatkilled.12hr", "E.fae.heatkilled.36hr", "E.fae.heatkilled.5.5d", "P.rett.heatkilled.12hr", "P.rett.heatkilled.36hr", "P.rett.heatkilled.5.5d")
-list.of.conditions <- list(clean.prick.12hr, clean.prick.36hr, clean.prick.5.5d, M.luteus.12hr, M.luteus.36hr, M.luteus.5.5d, E.coli.12hr, E.coli.36hr, E.coli.5.5d,
-                           S.mar.type.12hr, S.mar.type.36hr, S.mar.type.5.5d, E.fae.live.12hr, E.fae.live.36hr, E.fae.live.5.5d, P.rett.live.12hr, P.rett.live.36hr,
-                           P.rett.live.5.5d, Ecc15.12hr, Ecc15.36hr, Ecc15.5.5d, S.aureus.12hr, P.sneebia.12hr, S.mar.Db11.12hr, P.ento.12hr,
-                           E.fae.heatkilled.12hr, E.fae.heatkilled.36hr, E.fae.heatkilled.5.5d, P.rett.heatkilled.12hr, P.rett.heatkilled.36hr, P.rett.heatkilled.5.5d)
+list.of.conditions <- list(clean.prick.12hr, clean.prick.36hr, clean.prick.5.5d, M.luteus.12hr, M.luteus.36hr, M.luteus.5.5d, E.coli.12hr, E.coli.36hr, E.coli.5.5d,S.mar.type.12hr, S.mar.type.36hr, S.mar.type.5.5d, E.fae.live.12hr, E.fae.live.36hr, E.fae.live.5.5d, P.rett.live.12hr, P.rett.live.36hr,P.rett.live.5.5d, Ecc15.12hr, Ecc15.36hr, Ecc15.5.5d, S.aureus.12hr, P.sneebia.12hr, S.mar.Db11.12hr, P.ento.12hr, E.fae.heatkilled.12hr, E.fae.heatkilled.36hr, E.fae.heatkilled.5.5d, P.rett.heatkilled.12hr, P.rett.heatkilled.36hr, P.rett.heatkilled.5.5d)
 de.of.all.conditions <- matrix(NA, nrow=dim(CountTable)[1])
 
 count.table=c()
@@ -73,19 +70,7 @@ de.of.all.conditions = de.of.all.conditions[,c(2:63)] #Get rid of the first colu
 print("Writing out fold change and FDR of mega RNA-seq edgeR results ...")
 CountTable = read.table("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/edgeR_results_with_cpm_filter_all_UCs_Nov_2015/mega_RNA-seq_count_of_all_samples_filtered_cpm.txt", header=T)
 total.DE.with.name.and.id = cbind(CountTable[,c(1:2)], de.of.all.conditions) 
-colnames(total.DE.with.name.and.id) <- c("gene_id", "gene_name", "log2FC:clean.prick.12hr", "FDR:clean.prick.12hr","log2FC:clean.prick.36hr", "FDR:clean.prick.36hr",
-                                         "log2FC:clean.prick.5.5d", "FDR:clean.prick.5.5d", "log2FC:M.luteus.12hr", "FDR:M.luteus.12hr", "log2FC:M.luteus.36hr", "FDR:M.luteus.36hr",
-                                         "log2FC:M.luteus.5.5d", "FDR:M.luteus.5.5d", "log2FC:E.coli.12hr", "FDR:E.coli.12hr", "log2FC:E.coli.36hr", "FDR:E.coli.36hr",
-                                         "log2FC:E.coli.5.5d", "FDR:E.coli.5.5d", "log2FC:S.mar.type.12hr", "FDR:S.mar.type.12hr", "log2FC:S.mar.type.36hr", "FDR:S.mar.type.36hr",
-                                         "log2FC:S.mar.type.5.5d", "FDR:S.mar.type.5.5d", "log2FC:E.fae.live.12hr", "FDR:E.fae.live.12hr", "log2FC:E.fae.live.36hr", 
-                                         "FDR:E.fae.live.36hr", "log2FC:E.fae.live.5.5d", "FDR:E.fae.live.5.5d", "log2FC:P.rett.live.12hr", "FDR:P.rett.live.12hr",
-                                         "log2FC:P.rett.live.36hr", "FDR:P.rett.live.36hr", "log2FC:P.rett.live.5.5d", "FDR:P.rett.live.5.5d", "log2FC:Ecc15.12hr",
-                                         "FDR:Ecc15.12hr","log2FC:Ecc15.36hr", "FDR:Ecc15.36hr", "log2FC:Ecc15.5.5d", "FDR:Ecc15.5.5d", "log2FC:S.aureus.12hr",
-                                         "FDR:S.aureus.12hr", "log2FC:P.sneebia.12hr", "FDR:P.sneebia.12hr", "log2FC:S.mar.Db11.12hr", "FDR:S.mar.Db11.12hr",
-                                         "log2FC:P.ento.12hr", "FDR:P.ento.12hr", "log2FC:E.fae.heatkilled.12hr", "FDR:E.fae.heatkilled.12hr", "log2FC:E.fae.heatkilled.36hr",
-                                         "FDR:E.fae.heatkilled.36hr", "log2FC:E.fae.heatkilled.5.5d", "FDR:E.fae.heatkilled.5.5d", "log2FC:P.rett.heatkilled.12hr",
-                                         "FDR:P.rett.heatkilled.12hr", "log2FC:P.rett.heatkilled.36hr", "FDR:P.rett.heatkilled.36hr", "log2FC:P.rett.heatkilled.5.5d",
-                                         "FDR:P.rett.heatkilled.5.5d")
+colnames(total.DE.with.name.and.id) <- c("gene_id", "gene_name", "log2FC:clean.prick.12hr", "FDR:clean.prick.12hr","log2FC:clean.prick.36hr", "FDR:clean.prick.36hr","log2FC:clean.prick.5.5d", "FDR:clean.prick.5.5d", "log2FC:M.luteus.12hr", "FDR:M.luteus.12hr", "log2FC:M.luteus.36hr", "FDR:M.luteus.36hr","log2FC:M.luteus.5.5d", "FDR:M.luteus.5.5d", "log2FC:E.coli.12hr", "FDR:E.coli.12hr", "log2FC:E.coli.36hr", "FDR:E.coli.36hr","log2FC:E.coli.5.5d", "FDR:E.coli.5.5d", "log2FC:S.mar.type.12hr", "FDR:S.mar.type.12hr", "log2FC:S.mar.type.36hr", "FDR:S.mar.type.36hr","log2FC:S.mar.type.5.5d", "FDR:S.mar.type.5.5d", "log2FC:E.fae.live.12hr", "FDR:E.fae.live.12hr", "log2FC:E.fae.live.36hr", "FDR:E.fae.live.36hr", "log2FC:E.fae.live.5.5d", "FDR:E.fae.live.5.5d", "log2FC:P.rett.live.12hr", "FDR:P.rett.live.12hr","log2FC:P.rett.live.36hr", "FDR:P.rett.live.36hr", "log2FC:P.rett.live.5.5d", "FDR:P.rett.live.5.5d", "log2FC:Ecc15.12hr","FDR:Ecc15.12hr","log2FC:Ecc15.36hr", "FDR:Ecc15.36hr", "log2FC:Ecc15.5.5d", "FDR:Ecc15.5.5d", "log2FC:S.aureus.12hr","FDR:S.aureus.12hr", "log2FC:P.sneebia.12hr", "FDR:P.sneebia.12hr", "log2FC:S.mar.Db11.12hr", "FDR:S.mar.Db11.12hr","log2FC:P.ento.12hr", "FDR:P.ento.12hr", "log2FC:E.fae.heatkilled.12hr", "FDR:E.fae.heatkilled.12hr", "log2FC:E.fae.heatkilled.36hr", "FDR:E.fae.heatkilled.36hr", "log2FC:E.fae.heatkilled.5.5d", "FDR:E.fae.heatkilled.5.5d", "log2FC:P.rett.heatkilled.12hr","FDR:P.rett.heatkilled.12hr", "log2FC:P.rett.heatkilled.36hr", "FDR:P.rett.heatkilled.36hr", "log2FC:P.rett.heatkilled.5.5d","FDR:P.rett.heatkilled.5.5d")
 write.table(total.DE.with.name.and.id, file="edgeR_unchallenged_vs_infected_all_genes_FC.txt", quote=F, row.names=F)  # -- for unchallenged
 
 #Filter out the genes that have NA for p-val
@@ -160,7 +145,7 @@ full.expression.path.table = cbind(total.with.names.sig.indicated[,c(1:2)],full.
 colnames(full.expression.path.table) = c("gene_id","gene_name","M.luteus.path","E.coli.path","S.mar.type.path","E.fae.live.path","P.rett.live.path","Ecc15.path","E.fae.heatkilled.path","P.rett.heatkilled.path")
 write.table(full.expression.path.table, file ="edgeR_unchallenged_vs_infected_all_genes_with_expression_path.txt", quote=F, row.names = F, col.names = T)
 
-#Remove any genes that havent' changed significantly in any of the conditions. 2335 genes were left after filtering
+#Remove any genes that havent' changed significantly in any of the conditions.
 full.expression.path.table.EEs.removed = c()
 for (k in 1:dim(full.expression.path.table)[1]){ #1, 2, 3, ... 11911
     for (m in seq(3, 10, 1)){ #3, 4, ..., 10
@@ -178,7 +163,7 @@ write.table(full.expression.path.table.EEs.removed, file ="edgeR_unchallenged_vs
 M.luteus = full.expression.path.table[,c(1:3)]; E.coli = full.expression.path.table[,c(1:2,4)]
 S.mar.type = full.expression.path.table[,c(1:2,5)]; E.fae.live = full.expression.path.table[,c(1:2,6)]
 P.rett.live = full.expression.path.table[,c(1:2,7)]; Ecc15 = full.expression.path.table[,c(1:2,8)]
-########12/9/2016##E.fae.heatkilled = full.expression.path.table[,c(1:2,7)]; P.rett.heatkilled = full.expression.path.table[,c(1:2,8)]
+E.fae.heatkilled = full.expression.path.table[,c(1:2,9)]; P.rett.heatkilled = full.expression.path.table[,c(1:2,10)]
 list.of.bacteria = list(as.matrix(M.luteus), as.matrix(E.coli), as.matrix(S.mar.type), 
                         as.matrix(E.fae.live), as.matrix(P.rett.live), as.matrix(Ecc15), as.matrix(E.fae.heatkilled), as.matrix(P.rett.heatkilled))
 list.of.bacteria.name = c("M.luteus", "E.coli", "S.mar.type", "E.fae.live", "P.rett.live", "Ecc15", "E.fae.heatkilled", "P.rett.heatkilled")
@@ -191,7 +176,7 @@ for (g in 1:length(list.of.bacteria.name)){
     pattern = levels(sample[,3])
     
     for (h in 1:length(pattern)){ #assign genes to clusters
-    assign(paste0(list.of.bacteria.name[g],".cluster",h), sample[which(sample[,3] == pattern[i]),])
+    assign(paste0(list.of.bacteria.name[g],".cluster",h), sample[which(sample[,3] == pattern[g]),])
     }
     cat("Number of clusters for ", list.of.bacteria.name[g], " is ", length(pattern), "\n")
     number.of.cluster[g] = as.integer(length(pattern))
@@ -204,7 +189,7 @@ for (g in 1:length(list.of.bacteria.name)){
 M.luteus = full.expression.path.table.EEs.removed[,c(1:3)]; E.coli = full.expression.path.table.EEs.removed[,c(1:2,4)]
 S.mar.type = full.expression.path.table.EEs.removed[,c(1:2,5)]; E.fae.live = full.expression.path.table.EEs.removed[,c(1:2,6)]
 P.rett.live = full.expression.path.table.EEs.removed[,c(1:2,7)]; Ecc15 = full.expression.path.table.EEs.removed[,c(1:2,8)]
-E.fae.heatkilled = full.expression.path.table.EEs.removed[,c(1:2,7)]; P.rett.heatkilled = full.expression.path.table.EEs.removed[,c(1:2,8)]
+E.fae.heatkilled = full.expression.path.table.EEs.removed[,c(1:2,9)]; P.rett.heatkilled = full.expression.path.table.EEs.removed[,c(1:2,10)]
 list.of.bacteria = list(as.matrix(M.luteus), as.matrix(E.coli), as.matrix(S.mar.type), 
                         as.matrix(E.fae.live), as.matrix(P.rett.live), as.matrix(Ecc15), as.matrix(E.fae.heatkilled), as.matrix(P.rett.heatkilled))
 list.of.bacteria.name = c("M.luteus", "E.coli", "S.mar.type", "E.fae.live", "P.rett.live", "Ecc15", "E.fae.heatkilled", "P.rett.heatkilled")
@@ -217,7 +202,7 @@ for (g in 1:length(list.of.bacteria.name)){
     pattern = levels(sample[,3])
     
     for (h in 1:length(pattern)){ #assign genes to clusters
-        assign(paste0(list.of.bacteria.name[g],".cluster",h), sample[which(sample[,3] == pattern[i]),])
+        assign(paste0(list.of.bacteria.name[g],".cluster",h), sample[which(sample[,3] == pattern[g]),])
     }
     cat("Number of clusters for ", list.of.bacteria.name[g], " is ", length(pattern), "\n")
     number.of.cluster.EEs.removed[g] = as.integer(length(pattern))
@@ -500,7 +485,7 @@ write.table(full.expression.path.table.EEs.removed, file ="edgeR_prev_infected_v
 M.luteus = full.expression.path.table[,c(1:3)]; E.coli = full.expression.path.table[,c(1:2,4)]
 S.mar.type = full.expression.path.table[,c(1:2,5)]; E.fae.live = full.expression.path.table[,c(1:2,6)]
 P.rett.live = full.expression.path.table[,c(1:2,7)]; Ecc15 = full.expression.path.table[,c(1:2,8)]
-########12/9/2016##E.fae.heatkilled = full.expression.path.table[,c(1:2,7)]; P.rett.heatkilled = full.expression.path.table[,c(1:2,8)]
+E.fae.heatkilled = full.expression.path.table[,c(1:2,9)]; P.rett.heatkilled = full.expression.path.table[,c(1:2,10)]
 list.of.bacteria = list(as.matrix(M.luteus), as.matrix(E.coli), as.matrix(S.mar.type), 
                         as.matrix(E.fae.live), as.matrix(P.rett.live), as.matrix(Ecc15), as.matrix(E.fae.heatkilled), as.matrix(P.rett.heatkilled))
 list.of.bacteria.name = c("M.luteus", "E.coli", "S.mar.type", "E.fae.live", "P.rett.live", "Ecc15", "E.fae.heatkilled", "P.rett.heatkilled")
@@ -513,7 +498,7 @@ for (g in 1:length(list.of.bacteria.name)){
     pattern = levels(sample[,3])
     
     for (h in 1:length(pattern)){ #assign genes to clusters
-        assign(paste0(list.of.bacteria.name[g],".cluster",h), sample[which(sample[,3] == pattern[i]),])
+        assign(paste0(list.of.bacteria.name[g],".cluster",h), sample[which(sample[,3] == pattern[g]),])
     }
     cat("Number of clusters for ", list.of.bacteria.name[g], " is ", length(pattern), "\n")
     number.of.cluster[g] = as.integer(length(pattern))
@@ -539,7 +524,7 @@ for (g in 1:length(list.of.bacteria.name)){
     pattern = levels(sample[,3])
     
     for (h in 1:length(pattern)){ #assign genes to clusters
-        assign(paste0(list.of.bacteria.name[g],".cluster",h), sample[which(sample[,3] == pattern[i]),])
+        assign(paste0(list.of.bacteria.name[g],".cluster",h), sample[which(sample[,3] == pattern[g]),])
     }
     cat("Number of clusters for ", list.of.bacteria.name[g], " is ", length(pattern), "\n")
     number.of.cluster.EEs.removed[g] = as.integer(length(pattern))

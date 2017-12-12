@@ -5,8 +5,8 @@
 rm(list=ls(all=TRUE)) #delete any previous entry
 setwd("/Users/JooHyun/Dropbox/Cornell/Lab/Projects/Mega_RNA-seq/finding.core.genes/")
 
-data = read.csv("core_genes_all_live_bacteria_upregulated_with_conditions_and_normalized_counts.txt", header=T, sep = "\t")
-#data = read.table("core_genes_all_live_bacteria_downregulated_with_conditions_and_normalized_counts.txt", header=T, sep = "\t")
+data = read.csv("core_genes_all_live_bacteria_upregulated_with_conditions_and_normalized_counts.txt", header=T, sep = "\t") #upregulated
+#data = read.table("core_genes_all_live_bacteria_downregulated_with_conditions_and_normalized_counts.txt", header=T, sep = "\t") #downregulated
 data = data[,1:4]
 
 Gram_positive_exclusive = c(); Gram_negative_exclusive = c()
@@ -74,6 +74,8 @@ cat("The number of Gram-negative exclusive genes is: ",dim(Gram_negative_exclusi
 cat("The number of Core Gram-positive exclusive genes is: ",dim(Core_Gram_positive_exclusive)[1]) #20
 cat("The number of Core Gram-negative exclusive genes is: ",dim(Core_Gram_negative_exclusive)[1]) #1
 cat("The number of shared genes is: ",dim(Shared_Gram_genes)[1]) #553
+write.table(Core_Gram_positive_exclusive, file="core_Gram-type/core_Gram_positive_exclusive_upregulated.txt", quote =F, row.names = F, col.names = T)
+write.table(Core_Gram_negative_exclusive, file="core_Gram-type/core_Gram_negative_exclusive_upregulated.txt", quote =F, row.names = F, col.names = T)
 
 #Downregulated:
 cat("The number of Gram-positive exclusive genes is: ",dim(Gram_positive_exclusive)[1]) #393
@@ -81,3 +83,5 @@ cat("The number of Gram-negative exclusive genes is: ",dim(Gram_negative_exclusi
 cat("The number of Core Gram-positive exclusive genes is: ",dim(Core_Gram_positive_exclusive)[1]) #8
 cat("The number of Core Gram-negative exclusive genes is: ",dim(Core_Gram_negative_exclusive)[1]) #NA
 cat("The number of shared genes is: ",dim(Shared_Gram_genes)[1]) #510
+write.table(Core_Gram_positive_exclusive, file="core_Gram-type/core_Gram_positive_exclusive_downregulated.txt", quote =F, row.names = F, col.names = T)
+write.table(Core_Gram_negative_exclusive, file="core_Gram-type/core_Gram_negative_exclusive_downregulated.txt", quote =F, row.names = F, col.names = T)
